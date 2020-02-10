@@ -1,0 +1,6 @@
+/node_modules/
+/references/
+/dist/
+/TODO.md
+/test/
+*.swp
