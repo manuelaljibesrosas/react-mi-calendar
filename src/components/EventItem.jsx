@@ -8,7 +8,6 @@ import TypeFaceSansSerif from './TypeFaceSansSerif';
 const EventItem = ({
   // state
   name,
-  duration,
   location,
   // actions
   onClick,
@@ -24,19 +23,32 @@ const EventItem = ({
         display: flex; flex-direction: column;
       `}
     >
-      <TypeFaceSansSerif size="14px">{name}</TypeFaceSansSerif>
       <div
         css={css`
-          margin-bottom: 2px;
+          margin-bottom: ${(location) ? '4' : '0'}px;
         `}
-      />
-      <TypeFaceSansSerif size="13px">{duration}</TypeFaceSansSerif>
+      >
+        <TypeFaceSansSerif size="14px">{name}</TypeFaceSansSerif>
+      </div>
       {
-        location
+        (location)
         && (
-          <TypeFaceSansSerif size="13px">
-            {` | ${location}`}
-          </TypeFaceSansSerif>
+          <div
+            css={css`
+              display: flex; align-items: center;
+            `}
+          >
+            <div
+              css={css`
+                margin-right: 8px;
+                width: 6px; height 6px;
+                border-radius: 50%; background: green;
+              `}
+            />
+            <TypeFaceSansSerif size="13px">
+              {location}
+            </TypeFaceSansSerif>
+          </div>
         )
       }
     </div>
@@ -44,13 +56,11 @@ const EventItem = ({
 );
 
 EventItem.defaultProps = {
-  duration: '',
   location: '',
 };
 
 EventItem.propTypes = {
   name: PropTypes.string.isRequired,
-  duration: PropTypes.string,
   location: PropTypes.string,
   onClick: PropTypes.func.isRequired,
 };

@@ -17,10 +17,6 @@ import {
 // components
 import EventItem from './EventItem';
 
-// TODO: this renders on each frame bc the scrollTop
-// tracking we're doing is updating the state, this
-// makes the equality check between the new events and old
-// false because the pointer is different
 const eventListContainer = connect(
   (state) => ({
     events: selectEventsInRange(
@@ -58,7 +54,8 @@ export const PureEventList = ({
         >
           <EventItem
             onClick={() => openEventDetails(event)}
-            {...event}
+            name={event.name}
+            location={event.location}
           />
         </div>
       ))
