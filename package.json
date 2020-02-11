@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build:docs": "./node_modules/.bin/webpack --config .config/webpack-base-config.js",
+    "build:docs": "./node_modules/.bin/webpack --config .config/webpack-docs-config.js",
     "example": "./node_modules/.bin/webpack-dev-server --config .config/webpack-base-config.js",
     "test": "npx mocha-webpack --require ./test/setup.js --watch --webpack-config .config/webpack-tests-config.js ./test/index.js",
     "test:debug": "npx webpack --config .config/webpack-mocha-config.js && mocha --require ./test/setup.js --inspect-brk ./bin/tests.js"

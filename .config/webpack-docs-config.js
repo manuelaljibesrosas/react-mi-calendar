@@ -3,7 +3,7 @@ const htmlWebpackTemplate = require('html-webpack-template');
 const { resolve } = require('path');
 
 module.exports = ({
-  mode: 'development',
+  mode: 'production',
   entry: resolve(__dirname, '..', 'examples', 'default', 'index.jsx'),
   output: {
     path: resolve(__dirname, '..', 'docs'),
@@ -77,7 +77,6 @@ module.exports = ({
       bodyHtmlSnippet: `<div id="root"></div>`,
     }),
   ],
-  devtool: 'inline-source-map',
   resolve: {
     extensions: [ '.js', '.jsx' ],
   },
