@@ -6,7 +6,7 @@ module.exports = ({
   mode: 'development',
   entry: resolve(__dirname, '..', 'examples', 'default', 'index.jsx'),
   output: {
-    path: resolve(__dirname, '..', 'dist'),
+    path: resolve(__dirname, '..', 'docs'),
     filename: 'react-reactive-calendar.bundle.js',
   },
   module: {
