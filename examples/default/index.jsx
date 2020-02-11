@@ -8,13 +8,32 @@ import { addEvent } from '../../src/store/actions';
 // components
 import CalendarRoot from '../../src/components/Calendar';
 
-store.dispatch(addEvent({
-  name: 'some event',
-  start: moment(),
-  end: moment().add(1, 'days'),
-  description: 'test',
-  location: 'nowhere',
-}));
+const formatStr = 'YYYY-MM-DD';
+
+const sampleEvents = [
+  {
+    name: 'Meeting',
+    start: moment('2020-02-24', formatStr),
+    end: moment('2020-02-25', formatStr),
+    description: 'Business appointment',
+    location: 'San Francisco',
+  },
+  {
+    name: 'some event',
+    start: moment(),
+    end: moment().add(1, 'days'),
+    description: 'test',
+    location: 'nowhere',
+  },
+  {
+    name: 'Conference',
+    start: moment('2020-02-03', formatStr),
+    end: moment('2020-02-03', formatStr),
+    description: 'conference',
+  },
+];
+
+sampleEvents.forEach((e) => store.dispatch(addEvent(e)));
 
 render(
   <div
