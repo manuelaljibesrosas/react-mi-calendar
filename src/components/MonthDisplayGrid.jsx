@@ -106,7 +106,7 @@ const monthLabel = css`
 const innerCalendarContainer = compose(
   connect(
     (state) => ({
-      eventsByMonth: selectEventsByMonth(selectEvents(state)),
+      events: selectEvents(state),
     }),
     (dispatch) => ({
       navigateLeft: () => dispatch(navigateLeft()),
@@ -114,12 +114,13 @@ const innerCalendarContainer = compose(
     }),
   ),
   mapProps((props) => {
+    const eventsByMonth = selectEventsByMonth(props.events);
     let datesThatHaveEvent = [];
-    const month = Object.keys(props.eventsByMonth).filter(m => (
-      moment(m, 'YYYY-MM-DD').isSame(props.cursor, 'month')
-    ));
-    if (month.length) {
-      datesThatHaveEvent = props.eventsByMonth[month].reduce((acc, cur) => {
+    const month = Object.keys(eventsByMonth).filter((m) => (
+      moment(m, 'YYYY-MM').isSame(props.cursor, 'month')
+    ))[0];
+    if (month) {
+      datesThatHaveEvent = eventsByMonth[month].reduce((acc, cur) => {
         let i = Number(cur.start.format('DD'));
         while (i <= cur.end.format('DD')) {
           acc.push(i);

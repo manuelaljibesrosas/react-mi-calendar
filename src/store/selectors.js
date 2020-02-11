@@ -21,11 +21,11 @@ export const selectEventsInYear = (events, years) => events.filter((e) => (
 ));
 
 export const selectEventsByMonth = (events) => events.reduce((acc, cur) => {
-  if (!Array.isArray(acc[cur.start.format('YYYY-MM-DD')])) {
-    acc[cur.start.format('YYYY-MM-DD')] = [];
+  if (!Array.isArray(acc[cur.start.format('YYYY-MM')])) {
+    acc[cur.start.format('YYYY-MM')] = [];
   }
 
-  acc[cur.start.format('YYYY-MM-DD')].push(cur);
+  acc[cur.start.format('YYYY-MM')].push(cur);
   return acc;
 }, {});
 
