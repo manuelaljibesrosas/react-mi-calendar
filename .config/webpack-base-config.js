@@ -71,6 +71,12 @@ module.exports = ({
     new HtmlWebpackPlugin({
       inject: false,
       template: htmlWebpackTemplate,
+      meta: [
+        {
+          name: 'viewport',
+          content: 'width=device-width, initial-scale=1, shrink-to-fit=no',
+        },
+      ],
       links: [
         'https://fonts.googleapis.com/css?family=Roboto:300,400,500&display=swap',
       ],
