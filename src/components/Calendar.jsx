@@ -57,6 +57,7 @@ export const PureCalendar = ({
       max-width: 100%; width: 600px; overflow-x: hidden; overflow-y: auto; height: 600px;
       background-color: #f5f5f5;
       font-family: Roboto, sans-serif;
+      user-select: none;
 
       & * {
         box-sizing: border-box;
