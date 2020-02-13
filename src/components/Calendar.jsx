@@ -54,7 +54,7 @@ export const PureCalendar = ({
     ref={anchor}
     css={css`
       position: relative;
-      max-width: 100vw; width: 600px; overflow-x: hidden; overflow-y: auto; height: 100vh;
+      max-width: 100vw; width: 600px; overflow-x: hidden; overflow-y: auto; height: 100%;
       background-color: #f5f5f5;
       font-family: Roboto, sans-serif;
       user-select: none;

@@ -39,12 +39,13 @@ render(
   <div
     css={css`
       position: fixed; top: 0; left: 0;
-      width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center;
+      width: 100vw; height: 100%; display: flex; align-items: center; justify-content: center;
       background: #fff;
     `}
   >
     <div
       css={css`
+        height: 100%;
         box-shadow: 0 4px 20px 0px #80808096;
       `}
     >
