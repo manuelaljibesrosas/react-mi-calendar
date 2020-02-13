@@ -29,19 +29,19 @@ const timesOfDay = {
 };
 
 const getTimeOfDay = (hour) => {
-  if (hour >= 6 && hour < 12) {
+  if (hour >= 6 && hour <= 12) {
     return timesOfDay.MORNING;
   }
-  if (hour >= 12 && hour < 19) {
+  if (hour > 12 && hour < 19) {
     return timesOfDay.NOON;
   }
   return timesOfDay.NIGHT;
 };
 
 const headerColors = {
-  [timesOfDay.MORNING]: 'orange',
-  [timesOfDay.NOON]: 'cornflowerblue',
-  [timesOfDay.NIGHT]: 'darkblue',
+  [timesOfDay.MORNING]: 'linear-gradient(#3bb47f, #5ec695)',
+  [timesOfDay.NOON]: 'linear-gradient(#e97d56, #f1a877)',
+  [timesOfDay.NIGHT]: 'linear-gradient(#545c9a, #6e74ae)',
 };
 
 const slideUp = keyframes`
@@ -151,9 +151,15 @@ const EventDetails = ({
       css={css`
         position: relative;
         display: flex; flex-direction: column; justify-content: flex-end; padding: 20px 25px; height 250px;
-        background-color: ${headerColors[getTimeOfDay(start.get('hour'))]};
+        background-image: ${headerColors[getTimeOfDay(start.get('hour'))]};
       `}
     >
+      {
+        // getTimeOfDay(start.get('hour')) === timesOfDay.MORNING
+        // && (
+        //   <MorningBackground />
+        // )
+      }
       <div
         onClick={goBack}
         css={css`
