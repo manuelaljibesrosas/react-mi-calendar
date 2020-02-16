@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build:docs": "./node_modules/.bin/webpack --config .config/webpack-docs-config.js",
-    "example": "./node_modules/.bin/webpack-dev-server --config .config/webpack-base-config.js",
+    "build:docs": "./node_modules/.bin/webpack --config .config/webpack-base-config.js",
+    "example": "./node_modules/.bin/webpack-dev-server --config .config/webpack-dev-config.js",
     "test": "npx mocha-webpack --require ./test/setup.js --watch --webpack-config .config/webpack-tests-config.js ./test/index.js",
     "test:debug": "npx webpack --config .config/webpack-mocha-config.js && mocha --require ./test/setup.js --inspect-brk ./bin/tests.js"
   },
@@ -24,6 +24,7 @@
     "@babel/preset-env": "^7.4.5",
     "@babel/preset-react": "^7.0.0",
     "@storybook/react": "^5.1.11",
+    "@svgr/cli": "^5.1.0",
     "babel-loader": "^8.0.6",
     "babel-plugin-emotion": "^10.0.9",
     "css-loader": "^2.1.1",
@@ -46,7 +47,7 @@
     "style-loader": "^0.23.1",
     "webpack": "^4.32.2",
     "webpack-cli": "^3.3.2",
-    "webpack-dev-server": "^3.4.1",
+    "webpack-dev-server": "^3.10.3",
     "webpack-merge": "^4.2.2",
     "webpack-node-externals": "^1.7.2"
   },
@@ -61,8 +62,7 @@
     "recompose": "^0.30.0",
     "redux": "^4.0.1",
     "redux-actions": "^2.6.5",
-    "redux-create-reducer": "^2.0.0",
-    "redux-time": "0.0.29"
+    "redux-create-reducer": "^2.0.0"
   },
   "repository": {
     "type": "git",

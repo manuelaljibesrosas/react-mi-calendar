@@ -3,8 +3,8 @@ const htmlWebpackTemplate = require('html-webpack-template');
 const { resolve } = require('path');
 
 module.exports = ({
-  mode: 'development',
-  entry: resolve(__dirname, '..', 'examples', 'default', 'index.jsx'),
+  mode: 'production',
+  entry: resolve(__dirname, '..', 'src', 'index.jsx'),
   output: {
     path: resolve(__dirname, '..', 'docs'),
     filename: 'react-mi-calendar.js',
@@ -24,16 +24,16 @@ module.exports = ({
           },
         },
       },
-			{
-				test: /\.jsx$/,
-				loader: 'babel-loader',
-				options: {
-					presets: [
-						'@babel/preset-env',
-						'@babel/preset-react',
-					],
-				},
-			},
+      {
+        test: /\.jsx$/,
+        loader: 'babel-loader',
+        options: {
+          presets: [
+            '@babel/preset-env',
+            '@babel/preset-react',
+          ],
+        },
+      },
       {
         test: /\.css$/,
         use: [ 'style-loader', 'css-loader' ],
@@ -79,11 +79,14 @@ module.exports = ({
       ],
       links: [
         'https://fonts.googleapis.com/css?family=Roboto:300,400,500&display=swap',
+        {
+          rel: 'manifest',
+          href: '/manifest.json',
+        },
       ],
       bodyHtmlSnippet: `<div id="root"></div>`,
     }),
   ],
-  devtool: 'inline-source-map',
   resolve: {
     extensions: [ '.js', '.jsx' ],
   },

@@ -2,11 +2,11 @@
 import { jsx, css } from '@emotion/core';
 import { render } from 'react-dom';
 import moment from 'moment';
-import store from '../../src/store';
+import store from './store';
 // actions
-import { addEvent } from '../../src/store/actions';
+import { addEvent } from './store/actions';
 // components
-import CalendarRoot from '../../src/components/Calendar';
+import CalendarRoot from './components/Calendar';
 
 const formatStr = 'YYYY-MM-DD';
 
@@ -55,4 +55,3 @@ render(
   // eslint-disable-next-line no-undef
   document.getElementById('root'),
 );
-
