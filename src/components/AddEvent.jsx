@@ -5,7 +5,12 @@ import {
   withProps,
   withHandlers,
 } from 'recompose';
-import moment from 'moment';
+import {
+  isSameMinute,
+  isBefore,
+  sub,
+  add,
+} from 'date-fns/fp';
 // selectors
 import { selectSelectedRange } from '../store/selectors';
 // actions
@@ -30,8 +35,8 @@ export const addEventContainer = compose(
     name: '',
     location: '',
     description: '',
-    start: range.start || moment(),
-    end: range.end || moment(),
+    start: range.start || new Date(),
+    end: range.end || new Date(),
   })),
   withHandlers({
     handleInputChange: ({
@@ -45,16 +50,19 @@ export const addEventContainer = compose(
       state,
       setState,
     }) => (value, name) => {
-      if (name === 'start' && state.end.isSameOrBefore(value, 'minute')) {
+      // TODO: isSameOrBefore 'minute'
+      if (name === 'start' && (isSameMinute(value)(state.end) || isBefore(value)(state.end))) {
         return setState({
           ...state,
-          start: state.end.clone().subtract(1, 'hours'),
+          start: value,
+          end: add({ hours: 1 })(value),
         });
       }
-      if (name === 'end' && state.start.isSameOrAfter(value, 'minute')) {
+      // TODO: isSameOrAfter 'minute'
+      if (name === 'end' && (isSameMinute(value)(state.start) || isBefore(value)(state.start))) {
         return setState({
           ...state,
-          start: value.clone().subtract(1, 'hours'),
+          start: sub({ hours: 1 })(value),
           end: value,
         });
       }

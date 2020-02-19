@@ -1,34 +1,32 @@
 /** @jsx jsx */
 import { jsx, css } from '@emotion/core';
 import { render } from 'react-dom';
-import moment from 'moment';
+import add from 'date-fns/add';
 import store from './store';
 // actions
 import { addEvent } from './store/actions';
 // components
 import CalendarRoot from './components/Calendar';
 
-const formatStr = 'YYYY-MM-DD';
-
 const sampleEvents = [
   {
     name: 'Meeting',
-    start: moment('2020-02-24', formatStr),
-    end: moment('2020-02-25', formatStr),
+    start: new Date(2020, 1, 24),
+    end: new Date(2020, 1, 25),
     description: 'Business appointment',
     location: 'San Francisco',
   },
   {
     name: 'some event',
-    start: moment(),
-    end: moment().add(1, 'days'),
+    start: new Date(),
+    end: add(new Date(), { days: 1 }),
     description: 'test',
     location: 'nowhere',
   },
   {
     name: 'Conference',
-    start: moment('2020-02-03', formatStr),
-    end: moment('2020-02-03', formatStr),
+    start: new Date(2020, 1, 3),
+    end: new Date(2020, 1, 3),
     description: 'conference',
   },
 ];

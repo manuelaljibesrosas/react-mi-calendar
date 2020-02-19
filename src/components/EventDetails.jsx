@@ -7,6 +7,10 @@ import {
 } from 'recompose';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import {
+  format,
+  getHours,
+} from 'date-fns/fp';
 import { views } from '../store/constants';
 // selectors
 import { selectSelectedEvent } from '../store/selectors';
@@ -151,7 +155,7 @@ const EventDetails = ({
       css={css`
         position: relative;
         display: flex; flex-direction: column; justify-content: flex-end; padding: 20px 25px; height 250px;
-        background-image: ${headerColors[getTimeOfDay(start.get('hour'))]};
+        background-image: ${headerColors[getTimeOfDay(getHours(start))]};
       `}
     >
       {
@@ -188,7 +192,7 @@ const EventDetails = ({
         font-weight: 400;
         `}
       >
-        {`${start.format('dddd, MMMM D, h:mm a')} - ${end.format('dddd, MMMM D, h:mm a')}${location && ` | ${location}`}`}
+        {`${format('EEEE, MMMM d, h:mm a')(start)} - ${format('EEEE, MMMM d, h:mm a')(start)}${location && ` | ${location}`}`}
       </h5>
     </div>
     <div
@@ -300,7 +304,7 @@ export default compose(
     (dispatch) => ({
       goBack: () => dispatch(goBack()),
       navigateToEditEvent: () => dispatch(setView(views.EDIT_EVENT)),
-      removeEvent: ({ id, start: startDate }) => dispatch(removeEvent({ id, startDate })),
+      removeEvent: ({ id }) => dispatch(removeEvent(id)),
     }),
   ),
   withState('state', 'setState', { deleteRequested: false }),

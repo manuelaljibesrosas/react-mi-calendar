@@ -1,5 +1,9 @@
-import moment from 'moment';
 import { createReducer } from 'redux-create-reducer';
+import {
+  isBefore,
+  sub,
+  add,
+} from 'date-fns/fp';
 import {
   UPDATE_SCROLL_TOP,
   SET_SELECTED_EVENT,
@@ -7,7 +11,6 @@ import {
   ADD_EVENT,
   UPDATE_EVENT,
   REMOVE_EVENT,
-  ADD_BULK_EVENTS,
   NAVIGATE,
   SET_RANGE,
   SET_DISPLAY_DATE,
@@ -22,7 +25,6 @@ import {
 import {
   reduce,
   generateId,
-  getFormattedDateFromMoment,
 } from './utils';
 
 export const initialState = {
@@ -33,11 +35,11 @@ export const initialState = {
     end: null,
   },
   // current date
-  currentDate: moment(),
+  currentDate: new Date(),
   // date that is displayed in the calendar view,
   // users sometimes navigate to other months/years without
   // necessarily selecting a new date
-  cursor: moment(),
+  cursor: new Date(),
   events: [],
   // defines the current layout of the calendar, a list of
   // states are defined in the views constant
@@ -69,7 +71,18 @@ export default createReducer(initialState, {
     events: state.events.concat([{
       id: generateId(),
       ...payload,
-    }]),
+    }]).sort((a, b) => {
+      if (a.start.getFullYear() === b.start.getFullYear()) {
+        if (a.start.getMonth() === b.start.getMonth()) {
+          if (a.start.getDate() === b.start.getDate()) {
+            return a.start.getHours() - b.start.getHours();
+          }
+          return a.start.getDate() - b.start.getDate();
+        }
+        return a.start.getMonth() - b.start.getMonth();
+      }
+      return a.start.getFullYear() - b.start.getFullYear();
+    }),
   }),
   [UPDATE_EVENT]: (state, { payload }) => {
     const index = state.events.findIndex((e) => e.id === payload.id);
@@ -93,40 +106,16 @@ export default createReducer(initialState, {
       events: newEvents,
     };
   },
-  [ADD_BULK_EVENTS]: (state, { payload }) => {
-    const newEvents = payload.reduce((acc, cur) => {
-      const startDate = getFormattedDateFromMoment(cur.start);
-      if (!Object.prototype.hasOwnProperty.call(acc, startDate)) {
-        acc[startDate] = [];
-      }
-      acc[startDate].push({
-        ...cur,
-        id: generateId(),
-      });
-      return acc;
-    }, {});
-    const updatedEvents = { ...state.events };
-
-    // eslint-disable-next-line guard-for-in
-    for (const date in newEvents) {
-      if (!Object.prototype.hasOwnProperty.call(state.events, date)) {
-        updatedEvents[date] = [];
-      }
-      updatedEvents[date].push(...newEvents[date]);
-    }
-
-    return {
-      ...state,
-      events: updatedEvents,
-    };
-  },
   [SET_RANGE]: (state, { payload: date }) => {
-    const isSelecting = !!(state.selectedRange.start && !state.selectedRange.end)
-      && state.selectedRange;
+    const isSelecting = Boolean(
+      !!(state.selectedRange.start && !state.selectedRange.end)
+      && state.selectedRange,
+    );
     let selectedRange;
 
     if (isSelecting) {
-      if (date.isBefore(state.selectedRange.start, 'day')) {
+      // isBefore 'day'
+      if (isBefore(state.selectedRange.start)(date)) {
         selectedRange = {
           start: date,
           end: null,
@@ -160,7 +149,7 @@ export default createReducer(initialState, {
     if (payload === navigationOrientations.LEFT) {
       return ({
         ...state,
-        cursor: state.cursor.clone().subtract(1, 'months'),
+        cursor: sub({ months: 1 })(state.cursor),
         navigationOrientation: navigationOrientations.LEFT,
       });
     }
@@ -168,7 +157,7 @@ export default createReducer(initialState, {
     if (payload === navigationOrientations.RIGHT) {
       return ({
         ...state,
-        cursor: state.cursor.clone().add(1, 'months'),
+        cursor: add({ months: 1 })(state.cursor),
         navigationOrientation: navigationOrientations.RIGHT,
       });
     }

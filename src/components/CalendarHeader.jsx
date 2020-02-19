@@ -8,6 +8,12 @@ import {
 } from 'recompose';
 import PropTypes from 'prop-types';
 import {
+  add,
+  sub,
+  format,
+  parseISO,
+} from 'date-fns/fp';
+import {
   navigationOrientations,
   views,
 } from '../store/constants';
@@ -158,14 +164,14 @@ export const PureCalendarHeader = ({
             navigationOrientation === navigationOrientations.RIGHT
             && (
               <h3
-                key={cursor.clone().subtract(1, 'month').format('YYYY-MM-DD')}
+                key={compose(format('yyyy-MM-dd'), sub({ months: 1 }))(cursor)}
                 css={css`
                   position: absolute; top: 0; left: -100%; margin: 0;
                   width: 100%;
                   font-size: 22px; font-weight: 500;
                 `}
               >
-                {cursor.clone().subtract(1, 'month').format('YYYY MMM')}
+                {compose(format('yyyy MMM'), sub({ months: 1 }))(cursor)}
               </h3>
             )
           }
@@ -176,20 +182,20 @@ export const PureCalendarHeader = ({
               font-size: 22px; font-weight: 500;
             `}
           >
-            {cursor.format('YYYY MMM')}
+            {format('yyyy MMM')(cursor)}
           </h3>
           {
             navigationOrientation === navigationOrientations.LEFT
             && (
               <h3
-                key={cursor.clone().add(1, 'month').format('YYYY-MM-DD')}
+                key={compose(format('yyyy-MM-dd'), add({ months: 1 }))(cursor)}
                 css={css`
                   position: absolute; top: 0; left: 100%; margin: 0;
                   width: 100%;
                   font-size: 22px; font-weight: 500;
                 `}
               >
-                {cursor.clone().add(1, 'month').format('YYYY MMM')}
+                {compose(format('yyyy MMM'), add({ months: 1 }))(cursor)}
               </h3>
             )
           }

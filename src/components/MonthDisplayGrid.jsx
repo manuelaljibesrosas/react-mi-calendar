@@ -7,13 +7,21 @@ import {
   lifecycle,
 } from 'recompose';
 import PropTypes from 'prop-types';
-import moment from 'moment';
+import {
+  getDate,
+  getDay,
+  setDate,
+  add,
+  sub,
+  format,
+  isSameMonth,
+} from 'date-fns/fp';
 import { navigationOrientations } from '../store/constants';
 // selectors
 import {
   selectNavigationOrientation,
   selectCursor,
-  selectEventsByMonth,
+  selectEventsInMonth,
   selectEvents,
 } from '../store/selectors';
 // actions
@@ -25,7 +33,7 @@ import {
 import ChevronLeft from '../svg/chevron-left.svg';
 import ChevronRight from '../svg/chevron-right.svg';
 import TypeFace2 from './TypeFace2';
-import CalendarDateCell from './CalendarDayCell';
+import CalendarDayCell from './CalendarDayCell';
 
 // const translateFromRight = keyframes`
 //   from {
@@ -78,19 +86,19 @@ const getAnimation = (orientation) => {
 };
 
 const getRangeOfVisibleDaysFromPreviousMonth = (m) => {
-  const firstDayOfMonth = m.clone().date(1);
+  const firstDayOfMonth = setDate(1)(m);
 
   const daysOfPreviousMonth = [];
 
-  for (let i = firstDayOfMonth.day(); i > 0; i--) {
-    daysOfPreviousMonth.push(firstDayOfMonth.subtract(1, 'day').date());
+  for (let i = getDay()(firstDayOfMonth); i > 0; i--) {
+    daysOfPreviousMonth.push(compose(getDate(), sub({ days: i }))(firstDayOfMonth));
   }
 
   return daysOfPreviousMonth.sort();
 };
 
 const getRangeOfVisibleDaysFromNextMonth = (m) => {
-  const dayIndex = m.clone().add(1, 'month').date(0).day();
+  const dayIndex = compose(getDay(), setDate(0), add({ months: 1 }));
 
   if (dayIndex === 6) return [];
 
@@ -114,21 +122,16 @@ const innerCalendarContainer = compose(
     }),
   ),
   mapProps((props) => {
-    const eventsByMonth = selectEventsByMonth(props.events);
-    let datesThatHaveEvent = [];
-    const month = Object.keys(eventsByMonth).filter((m) => (
-      moment(m, 'YYYY-MM').isSame(props.cursor, 'month')
-    ))[0];
-    if (month) {
-      datesThatHaveEvent = eventsByMonth[month].reduce((acc, cur) => {
-        let i = Number(cur.start.format('DD'));
-        while (i <= cur.end.format('DD')) {
-          acc.push(i);
-          i++;
-        }
-        return acc;
-      }, []);
-    }
+    const eventsInMonth = selectEventsInMonth(props.events, props.cursor);
+    const datesThatHaveEvent = eventsInMonth.reduce((acc, cur) => {
+      let i = Number(format('dd')(cur.start));
+      while (i <= Number(format('dd')(cur.end))) {
+        acc.push(i);
+        i++;
+      }
+      return acc;
+    }, []);
+
     return {
       ...props,
       datesThatHaveEvent,
@@ -137,7 +140,7 @@ const innerCalendarContainer = compose(
   lifecycle({
     shouldComponentUpdate(nextProps) {
       if (
-        !this.props.cursor.isSame(nextProps.cursor, 'month')
+        !isSameMonth(nextProps.cursor)(this.props.cursor)
         || this.props.datesThatHaveEvent.length !== nextProps.datesThatHaveEvent
       ) {
         return true;
@@ -183,9 +186,9 @@ const PureInnerCalendar = ({
     </div>
     {
       getRangeOfVisibleDaysFromPreviousMonth(cursor).map((day) => (
-        <CalendarDateCell
+        <CalendarDayCell
           key={`prevMonth-${day}`}
-          date={cursor.clone().subtract(1, 'month').date(day)}
+          date={compose(setDate(day), sub({ months: 1 }))(cursor)}
           dimmed
           onClick={navigateLeft}
         />
@@ -193,12 +196,12 @@ const PureInnerCalendar = ({
     }
     {
       // eslint-disable-next-line prefer-spread
-      Array.apply(null, { length: cursor.clone().add(1, 'month').date(0).date() })
+      Array.apply(null, { length: compose(getDate(), setDate(0), add({ months: 1 }))(cursor) })
         .map((_, index) => index + 1)
         .map((day) => (
-          <CalendarDateCell
+          <CalendarDayCell
             key={day}
-            date={cursor.clone().date(day)}
+            date={setDate(day)(cursor)}
             hasEvent={datesThatHaveEvent.includes(day)}
           />
         ))
@@ -207,9 +210,9 @@ const PureInnerCalendar = ({
       getRangeOfVisibleDaysFromNextMonth(cursor)
         .map((val) => val + 1)
         .map((day) => (
-          <CalendarDateCell
+          <CalendarDayCell
             key={`nextMonth-${day}`}
-            date={cursor.clone().add(1, 'month').date(day)}
+            date={compose(setDate(day), add({ months: 1 }))(cursor)}
             dimmed
             onClick={navigateRight}
           />
@@ -219,7 +222,7 @@ const PureInnerCalendar = ({
 );
 
 PureInnerCalendar.propTypes = {
-  cursor: PropTypes.instanceOf(moment).isRequired,
+  cursor: PropTypes.instanceOf(Date).isRequired,
   navigateLeft: PropTypes.func.isRequired,
   navigateRight: PropTypes.func.isRequired,
 };
@@ -294,7 +297,7 @@ const PureMonthDisplayGrid = ({
         navigationOrientation === navigationOrientations.RIGHT
         && (
           <div
-            key={cursor.clone().subtract(1, 'month').format('YYYY-MM-DD')}
+            key={compose(format('yyyy-MM-dd'), sub({ months: 1 }))(cursor)}
             css={css`
               position: absolute; top: 0; left: 0;
               transform: translateX(-100%);
@@ -302,13 +305,13 @@ const PureMonthDisplayGrid = ({
             `}
           >
             <InnerCalendar
-              cursor={cursor.clone().subtract(1, 'month')}
+              cursor={sub({ months: 1 })(cursor)}
             />
           </div>
         )
       }
       <div
-        key={cursor.clone().format('YYYY-MM-DD')}
+        key={format('yyyy-MM-dd')(cursor)}
         css={css`
           height: 100%; width: 100%;
         `}
@@ -321,7 +324,7 @@ const PureMonthDisplayGrid = ({
         navigationOrientation === navigationOrientations.LEFT
         && (
           <div
-            key={cursor.clone().add(1, 'month').format('YYYY-MM-DD')}
+            key={compose(format('yyyy-MM-dd'), add({ months: 1 }))(cursor)}
             css={css`
               position: absolute; top: 0; left: 0;
               transform: translateX(100%);
@@ -329,7 +332,7 @@ const PureMonthDisplayGrid = ({
             `}
           >
             <InnerCalendar
-              cursor={cursor.clone().add(1, 'month')}
+              cursor={add({ months: 1 })(cursor)}
             />
           </div>
         )
@@ -339,7 +342,7 @@ const PureMonthDisplayGrid = ({
 );
 
 PureMonthDisplayGrid.propTypes = {
-  cursor: PropTypes.instanceOf(moment).isRequired,
+  cursor: PropTypes.instanceOf(Date).isRequired,
   navigationOrientation: PropTypes.oneOf(Object.values(navigationOrientations)).isRequired,
   navigateLeft: PropTypes.func.isRequired,
   navigateRight: PropTypes.func.isRequired,

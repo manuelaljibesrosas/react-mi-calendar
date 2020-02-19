@@ -7,12 +7,20 @@ import {
   withState,
   withPropsOnChange,
 } from 'recompose';
+import {
+  isWithinInterval,
+  format,
+  differenceInDays,
+  add,
+  isSameDay,
+  isAfter,
+  getDate,
+} from 'date-fns/fp';
 import PropTypes from 'prop-types';
-import moment from 'moment';
 import { views } from '../store/constants';
 import {
   searchEvents,
-} from '../store/reductions';
+} from '../store/utils';
 // assets
 import SearchIcon from '../svg/search.svg';
 // selectors
@@ -33,24 +41,27 @@ import RoundedBox from './RoundedBox';
 import AddEventButton from './AddEventButton';
 
 const displayEventDuration = (start, end, date) => {
-  if (date.isBetween(start, end, 'day')) {
+  // TODO: isBetween 'day'
+  if (isWithinInterval({ start, end })(date)) {
     return 'All day';
   }
 
-  if (date.isSame(start, 'day') && end.isAfter(start, 'day')) {
-    return `${start.format('h:mmA')} - 11:59PM`;
+  // TODO: isAfter 'day'
+  if (isSameDay(start)(date) && isAfter(start)(end)) {
+    return `${format('h:mma')(start)} - 11:59PM`;
   }
 
-  if (date.isSame(end, 'day') && end.isAfter(start, 'day')) {
-    return `12:00AM - ${end.format('h:mmA')}`;
+  // TODO: isAfter 'day'
+  if (isSameDay(end)(date) && isAfter(start)(end)) {
+    return `12:00AM - ${format(end, 'h:mma')}`;
   }
 
   if (
-    start.format('h:mmA') === '12:00AM'
-    && end.format('h:mmA') === '11:59PM'
+    format('h:mma')(start) === '12:00AM'
+    && format('h:mma')(end) === '11:59PM'
   ) return 'All day';
 
-  return `${start.format('h:mmA')} - ${end.format('h:mmA')}`;
+  return `${format('h:mma')(start)} - ${format('h:mma')(end)}`;
 };
 
 const Event = ({
@@ -87,7 +98,7 @@ const Event = ({
           font-size: 18px; font-weight: 500;
         `}
       >
-        {e.start.clone().add(index, 'days').date()}
+        {compose(getDate(), add({ days: index }))(e.start)}
       </h5>
       <h6
         css={css`
@@ -96,7 +107,7 @@ const Event = ({
           color: #888;
         `}
       >
-        {e.start.clone().add(index, 'days').format('ddd')}
+        {compose(format('ccc'), add({ days: index }))(e.start)}
       </h6>
     </div>
     <div
@@ -123,7 +134,7 @@ const Event = ({
           displayEventDuration(
             e.start,
             e.end,
-            e.start.clone().add(index, 'days'),
+            add({ days: index })(e.start),
           )
         }
         {
@@ -155,34 +166,12 @@ const EventList = ({
     `}
   >
     {
-      // !!Object.keys(events).length
-      // && (
-      //   <div
-      //     css={css`
-      //       display: flex; align-items: center; justify-content: center; height: 35px;
-      //     `}
-      //     onClick={() => handleShowEventsFromYear(moment(yearsToDisplay[0], 'YYYY').subtract(1, 'year').format('YYYY'))}
-      //   >
-      //     <div
-      //       css={css`
-      //         font-size: 13px;
-      //         color: #333;
-      //         cursor: pointer;
-      //         user-select: none;
-      //       `}
-      //     >
-      //       {`Show events from ${moment(yearsToDisplay[0], 'YYYY').subtract(1, 'year').format('YYYY')}`}
-      //     </div>
-      //   </div>
-      // )
-    }
-    {
       Object.keys(events).map((month) => (
         (events[month].length || null)
         && (
           <EventGroup
             key={month}
-            label={moment(month).format('MMMM YYYY')}
+            label={format('MMMM yyyy')(new Date(month.split('-')[0], month.split('-')[1]))}
             events={events[month]}
           />
         )
@@ -196,7 +185,7 @@ EventList.propTypes = {
   events: PropTypes.object.isRequired,
 };
 
-const EventGroup = connect(
+const eventGroupContainer = connect(
   null,
   (dispatch) => ({
     navigateToEvent: (e) => {
@@ -204,7 +193,9 @@ const EventGroup = connect(
       dispatch(setView(views.EVENT_DETAILS));
     },
   }),
-)(({
+);
+
+const PureEventGroup = ({
   // state
   label,
   events,
@@ -230,7 +221,7 @@ const EventGroup = connect(
       {
         events.reduce((acc, e) => {
           const eventInstances = [];
-          const diff = e.end.diff(e.start, 'days');
+          const diff = differenceInDays(e.start)(e.end);
           for (let i = 0; i <= diff; i++) {
             eventInstances.push((
               <Event
@@ -246,7 +237,9 @@ const EventGroup = connect(
       }
     </div>
   </RoundedBox>
-));
+);
+
+const EventGroup = eventGroupContainer(PureEventGroup);
 
 export const PureEvents = ({
   // state
@@ -314,7 +307,7 @@ export const eventsContainer = compose(
   withState('state', 'setState', ({ cursor }) => ({
     keyword: '',
     cursor,
-    yearsToDisplay: [ cursor.format('YYYY') ],
+    yearsToDisplay: [format('yyyy')(cursor)],
   })),
   withPropsOnChange(
     ['state', 'events'],
@@ -357,10 +350,9 @@ export const eventsContainer = compose(
       setState,
     }) => (year) => setState({
       ...state,
-      yearsToDisplay: state.yearsToDisplay.concat([ year ]).sort(),
+      yearsToDisplay: state.yearsToDisplay.concat([year]).sort(),
     }),
   }),
 );
 
 export default eventsContainer(PureEvents);
-

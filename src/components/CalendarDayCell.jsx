@@ -7,6 +7,12 @@ import {
   mapProps,
 } from 'recompose';
 import PropTypes from 'prop-types';
+import {
+  isWithinInterval,
+  isSameDay,
+  getDate,
+  setHours,
+} from 'date-fns/fp';
 // selectors
 import {
   selectCursor,
@@ -39,25 +45,26 @@ const rangeStates = {
 const isInRange = (date, range) => {
   if (!range.start) return rangeStates.NOT_IN_RANGE;
 
-  if (date.isSame(range.start, 'day') && !range.end) {
+  if (isSameDay(range.start)(date) && !range.end) {
     return rangeStates.SELECTION_START;
   }
 
   if (!range.end) return rangeStates.NOT_IN_RANGE;
 
-  if (date.isSame(range.start, 'day') && !date.isSame(range.end, 'day')) {
+  if (isSameDay(range.start)(date) && !isSameDay(range.end)(date)) {
     return rangeStates.START;
   }
 
-  if (date.isBetween(range.start, range.end, 'day')) {
+  // TODO: isBetween 'day'
+  if (compose(isWithinInterval(range), setHours(23))(date)) {
     return rangeStates.BETWEEN;
   }
 
-  if (date.isSame(range.start, 'day') && date.isSame(range.end, 'day')) {
+  if (isSameDay(range.start)(date) && isSameDay(range.end)(date)) {
     return rangeStates.ONLY;
   }
 
-  if (date.isSame(range.end, 'day')) {
+  if (isSameDay(range.end)(date)) {
     return rangeStates.END;
   }
 
@@ -208,7 +215,7 @@ const calendarDayCellContainer = compose(
       if (this.props.rangeState !== nextProps.rangeState) {
         return true;
       }
-      if (!this.props.date.isSame(nextProps.date, 'day')) {
+      if (!isSameDay(nextProps.date)(this.props.date)) {
         return true;
       }
       return false;
@@ -216,8 +223,8 @@ const calendarDayCellContainer = compose(
   }),
   mapProps((props) => ({
     ...omit(['date'], props),
-    day: props.date.date(),
-    isSelected: props.date.isSame(new Date(), 'day'),
+    day: getDate()(props.date),
+    isSelected: isSameDay(new Date())(props.date),
   })),
 );
 

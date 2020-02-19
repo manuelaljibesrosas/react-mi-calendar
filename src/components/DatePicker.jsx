@@ -9,6 +9,11 @@ import {
   withHandlers,
 } from 'recompose';
 import PropTypes from 'prop-types';
+import {
+  add,
+  sub,
+  format,
+} from 'date-fns/fp';
 // components
 import Arrow from '../svg/arrow.svg';
 import RoundedBox from './RoundedBox';
@@ -37,8 +42,8 @@ class Scroller extends React.Component {
     super(props);
 
     this.actions = {
-      INCREMENT: 'add',
-      DECREMENT: 'subtract',
+      INCREMENT: add,
+      DECREMENT: sub,
     };
 
     this.count = 0;
@@ -51,12 +56,19 @@ class Scroller extends React.Component {
   }
 
   handleMouseDown(action) {
+    const {
+      value,
+      onChange,
+      unit,
+      step,
+    } = this.props;
+
     if (this.count === 0) {
-      this.props.onChange(this.props.value.clone()[action](this.step, this.props.unit));
+      onChange(action({ [unit]: this.step })(value));
     }
     if (this.count > 20) { // offset until auto inc starts
       if (this.count % this.interval === 0) {
-        this.props.onChange(this.props.value.clone()[action](this.step, this.props.unit));
+        onChange(action({ [unit]: this.step })(value));
       }
       // update interval value after 2s
       if (this.count > 60 * 2) {
@@ -68,7 +80,7 @@ class Scroller extends React.Component {
       }
       // update step value after 4s
       if (this.count > 60 * 4) {
-        this.step = this.props.step * 3;
+        this.step = step * 3;
       }
     }
     this.count++;
@@ -87,7 +99,7 @@ class Scroller extends React.Component {
       value,
       step = 1,
       unit,
-      format,
+      format: formatStr,
     } = this.props;
 
     return (
@@ -135,14 +147,14 @@ class Scroller extends React.Component {
               user-select: none;
             `}
           >
-            {value.clone().subtract(step, unit).format(format)}
+            {compose(format(formatStr), sub({ [unit]: step }))(value)}
           </div>
           <div
             css={css`
               user-select: none;
             `}
           >
-            {value.format(format)}
+            {format(formatStr)(value)}
           </div>
           <div
             css={css`
@@ -150,7 +162,7 @@ class Scroller extends React.Component {
               user-select: none;
             `}
           >
-            {value.clone().add(step, unit).format(format)}
+            {compose(format(formatStr), add({ [unit]: step }))(value)}
           </div>
         </div>
         <div
@@ -178,8 +190,8 @@ class Scroller extends React.Component {
 const datePickerContainer = compose(
   withState('state', 'setState', ({ value }) => ({
     isOpened: false,
-    internalValue: value.clone(),
-    initialValue: value.clone(),
+    internalValue: new Date(value),
+    initialValue: new Date(value),
   })),
   withHandlers({
     open: ({ state, setState }) => () => setState({
@@ -247,7 +259,7 @@ const PureDatePicker = ({
         user-select: none;
       `}
     >
-      {value.format('ddd, MMM D, YYYY hh:mm A')}
+      {format('EEE, MMM d, yyyy hh:mm a')(value)}
     </div>
     {
       isOpened && (
@@ -300,7 +312,7 @@ const PureDatePicker = ({
                   font-size: 16px; font-weight: 400;
                 `}
               >
-                {internalValue.format('ddd, MMM D, YYYY hh:mm A')}
+                {format('EEE, MMM d, yyyy hh:mm a')(internalValue)}
               </h5>
             </div>
             <div
@@ -316,7 +328,7 @@ const PureDatePicker = ({
               >
                 <Scroller
                   value={internalValue}
-                  format="ddd, MMM D"
+                  format="EEE, MMM d"
                   unit="days"
                   onChange={handleChange}
                 />
@@ -338,7 +350,7 @@ const PureDatePicker = ({
                   value={internalValue}
                   format="m"
                   step={5}
-                  unit="minute"
+                  unit="minutes"
                   onChange={handleChange}
                 />
               </div>
