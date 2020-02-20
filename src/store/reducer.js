@@ -78,7 +78,7 @@ export default createReducer(initialState, {
       .then((db) => (
         db.add('events', event)
       ));
-    
+
     return {
       ...state,
       events: state.events.concat([event]).sort(sortEventsByDate),

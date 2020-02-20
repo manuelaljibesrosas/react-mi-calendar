@@ -6,7 +6,7 @@ import { addEvent } from './actions';
 const store = createStore(reducer);
 
 openDB('react-mi-calendar', 1, {
-  upgrade(db, oldVersion, newVersion, transaction) {
+  upgrade(db) {
     const events = db.createObjectStore('events', { keyPath: 'id' });
     events.createIndex('start-date', 'start');
   },
