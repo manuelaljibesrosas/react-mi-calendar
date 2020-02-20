@@ -4,6 +4,7 @@ import {
   sub,
   add,
 } from 'date-fns/fp';
+import { openDB } from 'idb';
 import {
   UPDATE_SCROLL_TOP,
   SET_SELECTED_EVENT,
@@ -25,6 +26,7 @@ import {
 import {
   reduce,
   generateId,
+  sortEventsByDate,
 } from './utils';
 
 export const initialState = {
@@ -66,24 +68,22 @@ export default createReducer(initialState, {
     view: state.navigationHistory.slice(state.navigationHistory.length - 1)[0],
     navigationHistory: state.navigationHistory.slice(0, state.navigationHistory.length - 1),
   }),
-  [ADD_EVENT]: (state, { payload }) => ({
-    ...state,
-    events: state.events.concat([{
+  [ADD_EVENT]: (state, { payload }) => {
+    const event = {
       id: generateId(),
       ...payload,
-    }]).sort((a, b) => {
-      if (a.start.getFullYear() === b.start.getFullYear()) {
-        if (a.start.getMonth() === b.start.getMonth()) {
-          if (a.start.getDate() === b.start.getDate()) {
-            return a.start.getHours() - b.start.getHours();
-          }
-          return a.start.getDate() - b.start.getDate();
-        }
-        return a.start.getMonth() - b.start.getMonth();
-      }
-      return a.start.getFullYear() - b.start.getFullYear();
-    }),
-  }),
+    };
+
+    openDB('react-mi-calendar', 1)
+      .then((db) => (
+        db.add('events', event)
+      ));
+    
+    return {
+      ...state,
+      events: state.events.concat([event]).sort(sortEventsByDate),
+    };
+  },
   [UPDATE_EVENT]: (state, { payload }) => {
     const index = state.events.findIndex((e) => e.id === payload.id);
     const updatedEvent = {
@@ -94,12 +94,24 @@ export default createReducer(initialState, {
     ret.events[index] = updatedEvent;
     ret.selectedEvent = updatedEvent;
 
+    openDB('react-mi-calendar', 1)
+      .then((db) => {
+        const tx = db.transaction('events', 'readwrite');
+        tx.store.put(updatedEvent);
+      });
+
     return ret;
   },
-  [REMOVE_EVENT]: (state, { payload }) => {
-    const index = state.events.findIndex((e) => e.id === payload);
+  [REMOVE_EVENT]: (state, { payload: eventId }) => {
+    const index = state.events.findIndex((e) => e.id === eventId);
     const newEvents = [].concat(state.events);
     newEvents.splice(index, 1);
+
+    openDB('react-mi-calendar', 1)
+      .then((db) => {
+        const tx = db.transaction('events', 'readwrite');
+        tx.store.delete(eventId);
+      });
 
     return {
       ...state,

@@ -212,10 +212,11 @@ const calendarDayCellContainer = compose(
   ),
   lifecycle({
     shouldComponentUpdate(nextProps) {
-      if (this.props.rangeState !== nextProps.rangeState) {
-        return true;
-      }
-      if (!isSameDay(nextProps.date)(this.props.date)) {
+      if (
+        this.props.rangeState !== nextProps.rangeState
+        || this.props.hasEvent !== nextProps.hasEvent
+        || !isSameDay(nextProps.date)(this.props.date)
+      ) {
         return true;
       }
       return false;

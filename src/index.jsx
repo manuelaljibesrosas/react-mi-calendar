@@ -8,30 +8,15 @@ import { addEvent } from './store/actions';
 // components
 import CalendarRoot from './components/Calendar';
 
-const sampleEvents = [
-  {
-    name: 'Meeting',
-    start: new Date(2020, 1, 24),
-    end: new Date(2020, 1, 25),
-    description: 'Business appointment',
-    location: 'San Francisco',
-  },
-  {
-    name: 'some event',
-    start: new Date(),
-    end: add(new Date(), { days: 1 }),
-    description: 'test',
-    location: 'nowhere',
-  },
-  {
-    name: 'Conference',
-    start: new Date(2020, 1, 3),
-    end: new Date(2020, 1, 3),
-    description: 'conference',
-  },
-];
-
-sampleEvents.forEach((e) => store.dispatch(addEvent(e)));
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/worker.js')
+    .then((registration) => {
+      console.log('registration successful', registration);
+    })
+    .catch((err) => {
+      console.log('worker couldn\'t be installed', err);
+    });
+}
 
 render(
   <div

@@ -4,10 +4,13 @@ const { resolve } = require('path');
 
 module.exports = ({
   mode: 'production',
-  entry: resolve(__dirname, '..', 'src', 'index.jsx'),
+  entry: {
+    main: resolve(__dirname, '..', 'src', 'index.jsx'),
+    worker: resolve(__dirname, '..', 'src', 'worker.js'),
+  },
   output: {
     path: resolve(__dirname, '..', 'docs'),
-    filename: 'react-mi-calendar.js',
+    filename: '[name].js',
   },
   module: {
     rules: [
@@ -17,10 +20,7 @@ module.exports = ({
         use: {
           loader: 'babel-loader',
           options: {
-            presets: [
-              '@babel/preset-env',
-              '@babel/preset-react',
-            ],
+            presets: ['@babel/preset-env'],
           },
         },
       },
@@ -36,7 +36,7 @@ module.exports = ({
       },
       {
         test: /\.css$/,
-        use: [ 'style-loader', 'css-loader' ],
+        use: ['style-loader', 'css-loader'],
       },
       {
         test: /\.svg$/,
@@ -88,6 +88,6 @@ module.exports = ({
     }),
   ],
   resolve: {
-    extensions: [ '.js', '.jsx' ],
+    extensions: ['.js', '.jsx'],
   },
 });

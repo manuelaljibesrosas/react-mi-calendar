@@ -12,10 +12,8 @@
 		"no-plusplus": "off",
 		"no-continue": "off"
 	},
-	"globals": {
-		"requestAnimationFrame": "readonly",
-		"cancelAnimationFrame": "readonly",
-		"document": "readonly",
-		"window": "readonly"
-	}
+  "env": {
+    "browser": true,
+    "worker": true
+  }
 }
