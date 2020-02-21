@@ -23,10 +23,6 @@ export const selectNavigationHistory = (state) => (
 );
 export const selectScrollTop = (state) => state.scrollTop;
 
-export const sortEvents = (events) => [].concat(events).sort((e1, e2) => (
-  isBefore(setMinutes(e1.start, 0), setMinutes(e2.start, 0))
-));
-
 export const selectEventsInYear = (events, years) => events.filter((e) => (
   years.includes(format('yyyy')(e.start))
   || years.includes(format('yyyy')(e.end))

@@ -8,7 +8,9 @@
     "build": "run-script-os",
     "build:win32": "npx webpack --config .config/webpack-base-config.js & copy manifest.json docs & mkdir docs\\icons & copy assets\\icons\\*.png docs\\icons",
     "build:default": "npx webpack --config .config/webpack-base-config.js && cp -r assets/icons docs && cp manifest.json docs",
-    "start:dev": "npx webpack-dev-server --config .config/webpack-dev-config.js"
+    "start:dev": "npx webpack-dev-server --config .config/webpack-dev-config.js",
+    "test": "npx mocha-webpack test/test.js",
+    "test:watch": "npx mocha-webpack test/test.js --watch"
   },
   "keywords": [
     "react",

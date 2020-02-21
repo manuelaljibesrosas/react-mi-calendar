@@ -26,7 +26,7 @@ import {
 import {
   reduce,
   generateId,
-  sortEventsByDate,
+  sortEvents,
 } from './utils';
 
 export const initialState = {
@@ -74,14 +74,16 @@ export default createReducer(initialState, {
       ...payload,
     };
 
-    openDB('react-mi-calendar', 1)
-      .then((db) => (
-        db.add('events', event)
-      ));
+    if (typeof IndexedDB !== 'undefined') {
+      openDB('react-mi-calendar', 1)
+        .then((db) => (
+          db.add('events', event)
+        ));
+    }
 
     return {
       ...state,
-      events: state.events.concat([event]).sort(sortEventsByDate),
+      events: state.events.concat([event]).sort(sortEvents),
     };
   },
   [UPDATE_EVENT]: (state, { payload }) => {
@@ -94,11 +96,13 @@ export default createReducer(initialState, {
     ret.events[index] = updatedEvent;
     ret.selectedEvent = updatedEvent;
 
-    openDB('react-mi-calendar', 1)
-      .then((db) => {
-        const tx = db.transaction('events', 'readwrite');
-        tx.store.put(updatedEvent);
-      });
+    if (typeof IndexedDB !== 'undefined') {
+      openDB('react-mi-calendar', 1)
+        .then((db) => {
+          const tx = db.transaction('events', 'readwrite');
+          tx.store.put(updatedEvent);
+        });
+    }
 
     return ret;
   },
@@ -107,11 +111,13 @@ export default createReducer(initialState, {
     const newEvents = [].concat(state.events);
     newEvents.splice(index, 1);
 
-    openDB('react-mi-calendar', 1)
-      .then((db) => {
-        const tx = db.transaction('events', 'readwrite');
-        tx.store.delete(eventId);
-      });
+    if (typeof IndexedDB !== 'undefined') {
+      openDB('react-mi-calendar', 1)
+        .then((db) => {
+          const tx = db.transaction('events', 'readwrite');
+          tx.store.delete(eventId);
+        });
+    }
 
     return {
       ...state,
