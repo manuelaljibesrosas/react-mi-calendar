@@ -22,7 +22,7 @@ const store = createStore(
   applyMiddleware(routerMiddleware(history)),
 );
 
-if (typeof IndexedDB !== 'undefined') {
+if (typeof indexedDB !== 'undefined') {
   openDB('react-mi-calendar', 1, {
     upgrade(db) {
       const events = db.createObjectStore('events', { keyPath: 'id' });

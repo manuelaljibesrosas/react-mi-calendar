@@ -61,7 +61,7 @@ export default createReducer(initialState, {
       ...payload,
     };
 
-    if (typeof IndexedDB !== 'undefined') {
+    if (typeof indexedDB !== 'undefined') {
       openDB('react-mi-calendar', 1)
         .then((db) => (
           db.add('events', event)
@@ -83,7 +83,7 @@ export default createReducer(initialState, {
     ret.events[index] = updatedEvent;
     ret.selectedEvent = updatedEvent;
 
-    if (typeof IndexedDB !== 'undefined') {
+    if (typeof indexedDB !== 'undefined') {
       openDB('react-mi-calendar', 1)
         .then((db) => {
           const tx = db.transaction('events', 'readwrite');
@@ -98,7 +98,7 @@ export default createReducer(initialState, {
     const newEvents = [].concat(state.events);
     newEvents.splice(index, 1);
 
-    if (typeof IndexedDB !== 'undefined') {
+    if (typeof indexedDB !== 'undefined') {
       openDB('react-mi-calendar', 1)
         .then((db) => {
           const tx = db.transaction('events', 'readwrite');
