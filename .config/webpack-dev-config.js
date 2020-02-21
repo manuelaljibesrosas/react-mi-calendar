@@ -8,10 +8,10 @@ module.exports = merge(
     mode: 'development',
     devtool: 'inline-source-map',
     devServer: {
+      port: 8081,
       publicPath: '/',
       contentBase: resolve(__dirname, '..', 'assets'),
       contentBasePublicPath: '/',
-      historyApiFallback: true,
     },
   },
 );
