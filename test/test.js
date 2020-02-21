@@ -5,15 +5,13 @@ import {
   isSameDay,
   isSameMonth,
 } from 'date-fns/fp';
-import store from '../src/store';
-import { views } from '../src/store/constants';
+import { createStore } from 'redux';
+import reducer from '../src/store/reducer';
 import {
   setSelectedEvent,
-  goBack,
   addEvent,
   updateEvent,
   removeEvent,
-  setView,
   setCurrentDate,
   setRange,
   navigateLeft,
@@ -28,6 +26,8 @@ import {
   searchEvents,
   sortEvents,
 } from '../src/store/utils';
+
+const store = createStore(reducer);
 
 const events = [
   {
@@ -108,30 +108,6 @@ describe('state', () => {
       store.dispatch(setCurrentDate(newDate));
       const state = store.getState();
       assert(isSameDay(newDate)(state.currentDate));
-    });
-  });
-  describe('setCalendarView', () => {
-    it('should set view', () => {
-      store.dispatch(setView(views.CREATE_EVENT));
-      const state = store.getState();
-      assert(
-        state.view === views.CREATE_EVENT
-        && state.navigationHistory.length
-        && state.navigationHistory[0] === views.CALENDAR,
-      );
-    });
-  });
-  describe('goBack', () => {
-    it('should use history to handle a goBack request', () => {
-      store.dispatch(setView(views.EVENTS));
-      store.dispatch(setView(views.EVENT_DETAILS));
-      store.dispatch(goBack());
-      const state = store.getState();
-
-      assert(
-        state.navigationHistory[state.navigationHistory.length - 1] === views.CALENDAR
-        && state.view === views.EVENTS,
-      );
     });
   });
   describe('setSelectedEvent', () => {

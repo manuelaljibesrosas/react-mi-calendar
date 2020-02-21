@@ -1,13 +1,13 @@
 /** @jsx jsx */
 import React from 'react';
-import {
-  connect,
-  Provider,
-} from 'react-redux';
+import { connect } from 'react-redux';
 import { lifecycle } from 'recompose';
 import { jsx, css } from '@emotion/core';
 import PropTypes from 'prop-types';
-import store from '../store';
+import {
+  Switch,
+  Route,
+} from 'react-router-dom';
 import { views } from '../store/constants';
 // selectors
 import {
@@ -78,43 +78,30 @@ export const PureCalendar = ({
         `}
       >
         <CalendarMonthDisplay />
-        {
-          (
-            (view === views.EVENTS)
-            && view !== views.CALENDAR
-          )
-          && (
-            <Wrapper>
-              <Events />
-            </Wrapper>
-          )
-        }
+        <Route path={views.EVENTS}>
+          <Wrapper>
+            <Events />
+          </Wrapper>
+        </Route>
       </div>
     </div>
-    {
-      (view === views.ADD_EVENT)
-      && (
+    <Switch>
+      <Route path={views.ADD_EVENT}>
         <Wrapper>
           <AddEvent />
         </Wrapper>
-      )
-    }
-    {
-      (view === views.EVENT_DETAILS)
-      && (
+      </Route>
+      <Route path={views.EVENT_DETAILS}>
         <Wrapper>
           <EventDetails />
         </Wrapper>
-      )
-    }
-    {
-      (view === views.EDIT_EVENT)
-      && (
+      </Route>
+      <Route path={views.EDIT_EVENT}>
         <Wrapper>
           <EditEvent />
         </Wrapper>
-      )
-    }
+      </Route>
+    </Switch>
   </div>
 );
 
@@ -126,19 +113,4 @@ PureCalendar.propTypes = {
 
 const Calendar = calendarContainer(PureCalendar);
 
-class CalendarRoot extends React.Component {
-  constructor(props) {
-    super(props);
-
-    // store.dispatch(registerCalendar(props.calendarId));
-  }
-  render() {
-    return (
-      <Provider store={store}>
-        <Calendar />
-      </Provider>
-    );
-  }
-}
-
-export default CalendarRoot;
+export default Calendar;

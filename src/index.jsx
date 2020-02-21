@@ -2,7 +2,9 @@
 import { jsx, css } from '@emotion/core';
 import { render } from 'react-dom';
 import add from 'date-fns/add';
-import store from './store';
+import { ConnectedRouter } from 'connected-react-router';
+import { Provider } from 'react-redux';
+import store, { history } from './store';
 // actions
 import { addEvent } from './store/actions';
 // components
@@ -32,7 +34,11 @@ render(
         box-shadow: 0 4px 20px 0px #80808096;
       `}
     >
-      <CalendarRoot calendarId="main" />
+      <Provider store={store}>
+        <ConnectedRouter history={history}>
+          <CalendarRoot calendarId="main" />
+        </ConnectedRouter>
+      </Provider>
     </div>
   </div>,
   // eslint-disable-next-line no-undef

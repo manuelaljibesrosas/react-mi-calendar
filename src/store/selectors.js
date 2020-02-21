@@ -10,18 +10,18 @@ import {
   setMinutes,
 } from 'date-fns/fp';
 
-export const selectNavigationOrientation = (state) => state.navigationOrientation;
-export const selectCursor = (state) => state.cursor;
-export const selectSelectedEvent = (state) => state.selectedEvent;
-export const selectSelectedRange = (state) => state.selectedRange;
-export const selectCurrentDate = (state) => state.currentDate;
-export const selectDisplayDate = (state) => state.displayDate;
-export const selectEvents = (state) => state.events;
-export const selectView = (state) => state.view;
+export const selectNavigationOrientation = (state) => state.calendar.navigationOrientation;
+export const selectCursor = (state) => state.calendar.cursor;
+export const selectSelectedEvent = (state) => state.calendar.selectedEvent;
+export const selectSelectedRange = (state) => state.calendar.selectedRange;
+export const selectCurrentDate = (state) => state.calendar.currentDate;
+export const selectDisplayDate = (state) => state.calendar.displayDate;
+export const selectEvents = (state) => state.calendar.events;
+export const selectView = (state) => state.router.location.pathname;
 export const selectNavigationHistory = (state) => (
-  state.navigationHistory
+  state.calendar.navigationHistory
 );
-export const selectScrollTop = (state) => state.scrollTop;
+export const selectScrollTop = (state) => state.calendar.scrollTop;
 
 export const selectEventsInYear = (events, years) => events.filter((e) => (
   years.includes(format('yyyy')(e.start))

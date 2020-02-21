@@ -11,6 +11,7 @@ module.exports = merge(
       publicPath: '/',
       contentBase: resolve(__dirname, '..', 'assets'),
       contentBasePublicPath: '/',
+      historyApiFallback: true,
     },
   },
 );

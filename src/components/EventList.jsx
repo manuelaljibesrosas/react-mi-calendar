@@ -10,10 +10,8 @@ import {
   selectEventsInRange,
 } from '../store/selectors';
 // actions
-import {
-  setView,
-  setSelectedEvent,
-} from '../store/actions';
+import { setSelectedEvent } from '../store/actions';
+import { push } from 'connected-react-router';
 // components
 import EventItem from './EventItem';
 
@@ -28,7 +26,7 @@ const eventListContainer = connect(
   (dispatch) => ({
     openEventDetails: (e) => {
       dispatch(setSelectedEvent(e));
-      dispatch(setView(views.EVENT_DETAILS));
+      dispatch(push(views.EVENT_DETAILS));
     },
   }),
 );

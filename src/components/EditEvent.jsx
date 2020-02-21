@@ -14,10 +14,8 @@ import {
 // selectors
 import { selectSelectedEvent } from '../store/selectors';
 // actions
-import {
-  goBack,
-  updateEvent,
-} from '../store/actions';
+import { updateEvent } from '../store/actions';
+import { goBack } from 'connected-react-router';
 // components
 import EditEventForm from './EditEventForm';
 

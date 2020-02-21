@@ -5,9 +5,9 @@ export const navigationOrientations = {
 };
 
 export const views = {
-  CALENDAR: 'CALENDAR',
-  EVENTS: 'EVENTS',
-  ADD_EVENT: 'ADD_EVENT',
-  EVENT_DETAILS: 'EVENT_DETAILS',
-  EDIT_EVENT: 'EDIT_EVENT',
+  CALENDAR: '/',
+  EVENTS: '/events',
+  ADD_EVENT: '/add-event',
+  EVENT_DETAILS: '/event-details',
+  EDIT_EVENT: '/edit-event',
 };

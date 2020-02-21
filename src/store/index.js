@@ -1,9 +1,26 @@
-import { createStore } from 'redux';
+import {
+  createStore,
+  combineReducers,
+  applyMiddleware,
+} from 'redux';
+import {
+  connectRouter,
+  routerMiddleware,
+} from 'connected-react-router';
+import { createBrowserHistory } from 'history';
 import { openDB } from 'idb';
 import reducer from './reducer';
 import { addEvent } from './actions';
 
-const store = createStore(reducer);
+export const history = createBrowserHistory();
+
+const store = createStore(
+  combineReducers({
+    router: connectRouter(history),
+    calendar: reducer,
+  }),
+  applyMiddleware(routerMiddleware(history)),
+);
 
 if (typeof IndexedDB !== 'undefined') {
   openDB('react-mi-calendar', 1, {

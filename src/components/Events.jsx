@@ -32,10 +32,8 @@ import {
   selectCursor,
 } from '../store/selectors';
 // actions
-import {
-  setSelectedEvent,
-  setView,
-} from '../store/actions';
+import { setSelectedEvent } from '../store/actions';
+import { push } from 'connected-react-router';
 // components
 import RoundedBox from './RoundedBox';
 import AddEventButton from './AddEventButton';
@@ -190,7 +188,7 @@ const eventGroupContainer = connect(
   (dispatch) => ({
     navigateToEvent: (e) => {
       dispatch(setSelectedEvent(e));
-      dispatch(setView(views.EVENT_DETAILS));
+      dispatch(push(views.EVENT_DETAILS));
     },
   }),
 );

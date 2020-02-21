@@ -15,11 +15,11 @@ import { views } from '../store/constants';
 // selectors
 import { selectSelectedEvent } from '../store/selectors';
 // actions
+import { removeEvent } from '../store/actions';
 import {
-  setView,
+  push,
   goBack,
-  removeEvent,
-} from '../store/actions';
+} from 'connected-react-router';
 // components
 import TrashCanIcon from '../svg/trashcan.svg';
 import EditIcon from '../svg/edit.svg';
@@ -303,7 +303,7 @@ export default compose(
     }),
     (dispatch) => ({
       goBack: () => dispatch(goBack()),
-      navigateToEditEvent: () => dispatch(setView(views.EDIT_EVENT)),
+      navigateToEditEvent: () => dispatch(push(views.EDIT_EVENT)),
       removeEvent: ({ id }) => dispatch(removeEvent(id)),
     }),
   ),

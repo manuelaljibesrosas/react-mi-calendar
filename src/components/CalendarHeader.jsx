@@ -11,7 +11,6 @@ import {
   add,
   sub,
   format,
-  parseISO,
 } from 'date-fns/fp';
 import {
   navigationOrientations,
@@ -27,7 +26,7 @@ import {
   selectNavigationOrientation,
 } from '../store/selectors';
 // actions
-import { setView } from '../store/actions';
+import { push } from 'connected-react-router';
 
 // z-index hack to make emotion think the animation is
 // different and update on every prop change
@@ -64,17 +63,18 @@ export const calendarHeaderIconContainer = compose(
     (state) => ({
       view: selectView(state),
     }),
-    { setView }
+    { push },
   ),
   withHandlers(({
     toggleEventsView: ({
       view,
+      push,
       setView,
     }) => () => {
       if (view === views.CALENDAR) {
-        setView(views.EVENTS);
+        push(views.EVENTS);
       } else {
-        setView(views.CALENDAR);
+        push(views.CALENDAR);
       }
     },
   })),

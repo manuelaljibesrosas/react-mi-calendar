@@ -8,7 +8,6 @@ import { openDB } from 'idb';
 import {
   UPDATE_SCROLL_TOP,
   SET_SELECTED_EVENT,
-  GO_BACK,
   ADD_EVENT,
   UPDATE_EVENT,
   REMOVE_EVENT,
@@ -16,7 +15,6 @@ import {
   SET_RANGE,
   SET_DISPLAY_DATE,
   SET_CURRENT_DATE,
-  SET_VIEW,
   RESET,
 } from './actions';
 import {
@@ -43,15 +41,9 @@ export const initialState = {
   // necessarily selecting a new date
   cursor: new Date(),
   events: [],
-  // defines the current layout of the calendar, a list of
-  // states are defined in the views constant
-  view: views.CALENDAR,
   // this is used by the EditEvent and ViewEvent components
   // to determine which event to edit/show
   selectedEvent: null,
-  // used to determine where to jump to when the goBack
-  // action is dispatched
-  navigationHistory: [],
   // used by the MonthDisplayGrid component to determine the
   // transition animation when the user navigates between months
   navigationOrientation: navigationOrientations.NONE,
@@ -63,11 +55,6 @@ export const initialState = {
 export default createReducer(initialState, {
   [UPDATE_SCROLL_TOP]: reduce('scrollTop'),
   [SET_SELECTED_EVENT]: reduce('selectedEvent'),
-  [GO_BACK]: (state) => ({
-    ...state,
-    view: state.navigationHistory.slice(state.navigationHistory.length - 1)[0],
-    navigationHistory: state.navigationHistory.slice(0, state.navigationHistory.length - 1),
-  }),
   [ADD_EVENT]: (state, { payload }) => {
     const event = {
       id: generateId(),
@@ -158,11 +145,6 @@ export default createReducer(initialState, {
   },
   [SET_CURRENT_DATE]: reduce('currentDate'),
   [SET_DISPLAY_DATE]: reduce('cursor'),
-  [SET_VIEW]: (state, { payload }) => ({
-    ...state,
-    navigationHistory: state.navigationHistory.concat([state.view]),
-    view: payload,
-  }),
   [NAVIGATE]: (state, { payload }) => {
     if (payload === navigationOrientations.LEFT) {
       return ({

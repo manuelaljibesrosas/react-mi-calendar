@@ -6,7 +6,7 @@ import { views } from '../store/constants';
 // selectors
 import { selectScrollTop } from '../store/selectors';
 // actions
-import { setView } from '../store/actions';
+import { push } from 'connected-react-router';
 // components
 import RoundShape from './RoundShape';
 
@@ -15,7 +15,7 @@ const addEventButtonContainer = connect(
     scrollTop: selectScrollTop(state),
   }),
   (dispatch) => ({
-    navigateToAddEventView: () => dispatch(setView(views.ADD_EVENT)),
+    navigateToAddEventView: () => dispatch(push(views.ADD_EVENT)),
   }),
 );
 
