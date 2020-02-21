@@ -11,13 +11,7 @@ import { addEvent } from './store/actions';
 import CalendarRoot from './components/Calendar';
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/worker.js')
-    .then((registration) => {
-      console.log('registration successful', registration);
-    })
-    .catch((err) => {
-      console.log('worker couldn\'t be installed', err);
-    });
+  navigator.serviceWorker.register('worker.js');
 }
 
 render(

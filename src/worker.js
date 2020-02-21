@@ -1,8 +1,6 @@
 /* eslint-disable no-restricted-globals */
 const cacheName = 'react-mi-calendar';
 const urlsToCache = [
-  '/',
-  '/main.js',
   'https://fonts.googleapis.com/css?family=Roboto:300,400,500&display=swap',
   'https://fonts.gstatic.com/s/roboto/v20/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2',
   'https://fonts.gstatic.com/s/roboto/v20/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2',
@@ -26,7 +24,24 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('fetch', (event) => {
   event.respondWith((
-    caches.match(event.request)
-      .then((response) => response || fetch(event.request))
+    caches.open(cacheName)
+      .then((cache) => (
+        cache.match(event.request)
+          .then((response) => {
+            if (!response) {
+              return fetch(event.request)
+                .then((response) => {
+                  cache.put(event.request, response.clone());
+                  return response;
+                });
+            }
+
+            // if a match was found in the cache, return it
+            // but also update the cache in the background
+            event.waitUntil(cache.add(event.request));
+
+            return response;
+          })
+      ))
   ));
 });

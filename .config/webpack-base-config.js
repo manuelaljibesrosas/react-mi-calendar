@@ -10,7 +10,9 @@ module.exports = ({
   },
   output: {
     path: resolve(__dirname, '..', 'docs'),
-    filename: '[name].js',
+    filename: (chunkData) => (
+      chunkData.chunk.name === 'main' ? '[name]-[contenthash].js' : '[name].js'
+    ),
   },
   module: {
     rules: [
@@ -85,7 +87,7 @@ module.exports = ({
           href: 'manifest.json',
         },
       ],
-      bodyHtmlSnippet: `<div id="root"></div>`,
+      appMountId: 'root',
     }),
   ],
   resolve: {
