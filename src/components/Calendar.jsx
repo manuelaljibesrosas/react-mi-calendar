@@ -67,6 +67,7 @@ export const PureCalendar = ({
     <div
       css={css`
         display: flex; flex-direction: column; height: 100%;
+        padding: 12px 2px;
       `}
     >
       <CalendarHeader />

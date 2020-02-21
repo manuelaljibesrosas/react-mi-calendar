@@ -108,7 +108,7 @@ const CalendarDayCell = ({
   <div
     css={css`
       position: relative;
-      height: 50px;
+      height: 60px;
       cursor: pointer;
       user-select: none;
 

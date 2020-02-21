@@ -89,7 +89,7 @@ export const PureCalendarHeaderIcon = ({
   <div
     css={css`
       cursor: pointer;
-      width: 20px; height: 20px;
+      width: 18px; height: 18px;
     `}
     onClick={toggleEventsView}
   >

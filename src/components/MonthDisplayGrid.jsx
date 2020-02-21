@@ -257,7 +257,9 @@ const PureMonthDisplayGrid = ({
   <div>
     <div
       css={css`
-        display: flex; justify-content: space-between; padding: 0 15px; height: 35px; align-items: center;
+        margin: 8px 0;
+        display: flex; justify-content: space-between; padding: 0 15px;
+        height: 8px; align-items: center;
       `}
     >
       <div
