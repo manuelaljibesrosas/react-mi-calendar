@@ -20,6 +20,7 @@ import PropTypes from 'prop-types';
 import { views } from '../store/constants';
 import {
   searchEvents,
+  sortEvents,
 } from '../store/utils';
 // assets
 import SearchIcon from '../svg/search.svg';
@@ -28,7 +29,6 @@ import {
   selectEvents,
   selectEventsByMonth,
   selectEventsInYear,
-  sortEvents,
   selectCursor,
 } from '../store/selectors';
 // actions

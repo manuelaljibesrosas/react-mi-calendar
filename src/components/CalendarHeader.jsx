@@ -94,7 +94,7 @@ export const PureCalendarHeaderIcon = ({
     onClick={toggleEventsView}
   >
     {
-      view === views.CALENDAR
+      view === views.EVENTS
       && (
         <EventsIcon
           css={css`
@@ -104,7 +104,7 @@ export const PureCalendarHeaderIcon = ({
       )
     }
     {
-      view === views.EVENTS
+      view === views.CALENDAR
       && (
         <CalendarIcon
           css={css`
