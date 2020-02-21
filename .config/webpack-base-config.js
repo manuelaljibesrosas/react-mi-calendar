@@ -71,6 +71,7 @@ module.exports = ({
     new HtmlWebpackPlugin({
       inject: false,
       template: htmlWebpackTemplate,
+      title: 'React MI Calendar',
       meta: [
         {
           name: 'viewport',
