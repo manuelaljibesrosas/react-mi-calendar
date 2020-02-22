@@ -350,15 +350,19 @@ export const eventsContainer = compose(
           ),
         ),
       );
-      // for (const month in filteredEvents) {
-      //   if (Object.prototype.hasOwnProperty.call(filteredEvents, month)) {
-      //     for (const date in filteredEvents[month]) {
-      //       if (Object.prototype.hasOwnProperty.call(filteredEvents, date)) {
-      //         filteredEvents[month][date] = searchEvents(filteredEvents[month][date], keyword);
-      //       }
-      //     }
-      //   }
-      // }
+      for (const month in filteredEvents) {
+        filteredEvents[month] = filteredEvents[month].map((date) => {
+          if (!date) {
+            return date;
+          }
+          const ret = searchEvents(date, keyword);
+
+          if (!ret.length) {
+            return null;
+          }
+          return ret;
+        });
+      }
 
       return { filteredEvents };
     },
