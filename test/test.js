@@ -4,6 +4,7 @@ import {
   sub,
   isSameDay,
   isSameMonth,
+  getDaysInMonth,
 } from 'date-fns/fp';
 import { createStore } from 'redux';
 import reducer from '../src/store/reducer';
@@ -166,11 +167,36 @@ describe('selectors', () => {
   describe('selectEventsByMonth', () => {
     it('should select events by month', () => {
       const eventsByMonth = selectEventsByMonth(events);
-      assert(
-        Object.keys(eventsByMonth).length === 4
-        && eventsByMonth['2020-1'].length === 1,
-      );
+      assert(Object.keys(eventsByMonth).length === 4);
     });
+    it(
+      'should return an array of dates for each month',
+      () => {
+        const eventsByMonth = selectEventsByMonth(events);
+        assert(eventsByMonth['2020-1'].length === getDaysInMonth(new Date(2020, 1)));
+      },
+    );
+    it(
+      'should put events into the days they belong to',
+      () => {
+        const parallelEvents = [
+          {
+            name: 'Conference',
+            start: new Date(2020, 1, 22),
+            end: new Date(2020, 1, 22, 11, 59),
+          },
+          {
+            name: 'Convention',
+            start: new Date(2020, 1, 21),
+            end: new Date(2020, 1, 23),
+          },
+        ];
+        const eventsByMonth = selectEventsByMonth(parallelEvents);
+        assert(
+          eventsByMonth['2020-1']['22'].length === 2
+        );
+      },
+    );
   });
   describe('selectEventsInRange', () => {
     it('should select events in range', () => {

@@ -15,6 +15,7 @@ import {
   isSameDay,
   isAfter,
   getDate,
+  setDate,
 } from 'date-fns/fp';
 import PropTypes from 'prop-types';
 import { views } from '../store/constants';
@@ -62,94 +63,74 @@ const displayEventDuration = (start, end, date) => {
   return `${format('h:mma')(start)} - ${format('h:mma')(end)}`;
 };
 
-const Event = ({
+const eventContainer = connect(
+  null,
+  (dispatch, ownProps) => ({
+    onClick: () => {
+      dispatch(setSelectedEvent(ownProps.e));
+      dispatch(push(views.EVENT_DETAILS));
+    },
+  }),
+);
+
+const PureEvent = ({
   // state
   e,
-  index,
+  date,
   // actions
   onClick,
 }) => (
   <div
-    onClick={onClick}
     css={css`
-      transition: background-color 200ms ease;
-      display: flex; height: 65px; border-bottom: 1px solid #eee;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 10px 0; border-bottom: 1px solid #eee;
       cursor: pointer;
-
-      &:hover {
-        background-color: #f9f9f9;
-      }
 
       &:last-child {
         border-bottom: none;
       }
     `}
+    onClick={onClick}
   >
-    <div
+    <h3
       css={css`
-        display: flex; flex-direction: column; justify-content: center; align-items: center; width: 45px;
+        margin: 0 0 5px;
+        font-size: 16px; font-weight: 500;
       `}
     >
-      <h5
-        css={css`
-          margin: 0 0 2px;
-          font-size: 18px; font-weight: 500;
-        `}
-      >
-        {compose(getDate(), add({ days: index }))(e.start)}
-      </h5>
-      <h6
-        css={css`
-          margin: 0;
-          font-weight: 400;
-          color: #888;
-        `}
-      >
-        {compose(format('ccc'), add({ days: index }))(e.start)}
-      </h6>
-    </div>
-    <div
+      {e.name}
+    </h3>
+    <h5
       css={css`
-        display: flex; flex-direction: column; justify-content: center;
+        margin: 0;
+        font-weight: 400;
+        color: #9E9E9E;
       `}
     >
-      <h3
-        css={css`
-          margin: 0 0 5px;
-          font-size: 16px; font-weight: 500;
-        `}
-      >
-        {e.name}
-      </h3>
-      <h5
-        css={css`
-          margin: 0;
-          font-weight: 400;
-          color: #9E9E9E;
-        `}
-      >
-        {
-          displayEventDuration(
-            e.start,
-            e.end,
-            add({ days: index })(e.start),
-          )
-        }
-        {
-          e.location
-          && ` | ${e.location}`
-        }
-      </h5>
-    </div>
+      {
+        displayEventDuration(
+          e.start,
+          e.end,
+          // add({ days: index })(e.start),
+          date,
+        )
+      }
+      {
+        e.location
+        && ` | ${e.location}`
+      }
+    </h5>
   </div>
 );
 
-Event.propTypes = {
+PureEvent.propTypes = {
   // eslint-disable-next-line react/forbid-prop-types
   e: PropTypes.any.isRequired,
-  index: PropTypes.number.isRequired,
+  date: PropTypes.instanceOf(Date),
   onClick: PropTypes.func.isRequired,
 };
+
+const Event = eventContainer(PureEvent);
 
 const EventList = ({
   // state
@@ -165,14 +146,11 @@ const EventList = ({
   >
     {
       Object.keys(events).map((month) => (
-        (events[month].length || null)
-        && (
-          <EventGroup
-            key={month}
-            label={format('MMMM yyyy')(new Date(month.split('-')[0], month.split('-')[1]))}
-            events={events[month]}
-          />
-        )
+        <EventGroup
+          key={month}
+          monthLabelDate={new Date(month.split('-')[0], month.split('-')[1])}
+          events={events[month]}
+        />
       ))
     }
   </div>
@@ -183,19 +161,71 @@ EventList.propTypes = {
   events: PropTypes.object.isRequired,
 };
 
-const eventGroupContainer = connect(
-  null,
-  (dispatch) => ({
-    navigateToEvent: (e) => {
-      dispatch(setSelectedEvent(e));
-      dispatch(push(views.EVENT_DETAILS));
-    },
-  }),
+const EventDateSection = ({
+  date,
+  events,
+}) => (
+  <div
+    css={css`
+      transition: background-color 200ms ease;
+      display: flex; min-height: 65px; border-bottom: 1px solid #eee;
+      align-items: center;
+
+      &:hover {
+        background-color: #f9f9f9;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    `}
+  >
+    <div
+      css={css`
+        display: flex; flex-direction: column; justify-content: center;
+        align-items: center; width: 45px; align-self: baseline;
+        padding: 10px 0;
+      `}
+    >
+      <h5
+        css={css`
+          margin: 0 0 2px;
+          font-size: 18px; font-weight: 500;
+        `}
+      >
+        {date.getDate()}
+      </h5>
+      <h6
+        css={css`
+          margin: 0;
+          font-weight: 400;
+          color: #888;
+        `}
+      >
+        {format('ccc')(date)}
+      </h6>
+    </div>
+    <div
+      css={css`
+        flex: 1;
+      `}
+    >
+      {
+        events.map((e) => (
+          <Event
+            e={e}
+            key={e.id + date.getDate()}
+            date={date}
+          />
+        ))
+      }
+    </div>
+  </div>
 );
 
-const PureEventGroup = ({
+const EventGroup = ({
   // state
-  label,
+  monthLabelDate,
   events,
   // actions
   navigateToEvent,
@@ -213,31 +243,26 @@ const PureEventGroup = ({
         color: #47A6EA;
       `}
     >
-      {label}
+      {format('MMMM yyyy')(monthLabelDate)}
     </h3>
     <div>
       {
-        events.reduce((acc, e) => {
-          const eventInstances = [];
-          const diff = differenceInDays(e.start)(e.end);
-          for (let i = 0; i <= diff; i++) {
-            eventInstances.push((
-              <Event
-                e={e}
-                key={e.id + i}
-                index={i}
-                onClick={() => navigateToEvent(e)}
-              />
-            ));
+        events.reduce((acc, cur, idx) => {
+          if (!cur) {
+            return acc;
           }
-          return acc.concat(eventInstances);
+          return acc.concat(
+            <EventDateSection
+              key={idx}
+              events={cur}
+              date={setDate(idx)(monthLabelDate)}
+            />
+          );
         }, [])
       }
     </div>
   </RoundedBox>
 );
-
-const EventGroup = eventGroupContainer(PureEventGroup);
 
 export const PureEvents = ({
   // state
@@ -317,7 +342,7 @@ export const eventsContainer = compose(
       },
       events,
     }) => {
-      const eventsByMonth = selectEventsByMonth(
+      const filteredEvents = selectEventsByMonth(
         sortEvents(
           selectEventsInYear(
             events,
@@ -325,12 +350,15 @@ export const eventsContainer = compose(
           ),
         ),
       );
-      const filteredEvents = { ...eventsByMonth };
-      for (const month in filteredEvents) {
-        if (Object.prototype.hasOwnProperty.call(filteredEvents, month)) {
-          filteredEvents[month] = searchEvents(filteredEvents[month], keyword);
-        }
-      }
+      // for (const month in filteredEvents) {
+      //   if (Object.prototype.hasOwnProperty.call(filteredEvents, month)) {
+      //     for (const date in filteredEvents[month]) {
+      //       if (Object.prototype.hasOwnProperty.call(filteredEvents, date)) {
+      //         filteredEvents[month][date] = searchEvents(filteredEvents[month][date], keyword);
+      //       }
+      //     }
+      //   }
+      // }
 
       return { filteredEvents };
     },

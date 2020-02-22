@@ -8,6 +8,8 @@ import {
   add,
   setDate,
   setMinutes,
+  differenceInDays,
+  getDaysInMonth,
 } from 'date-fns/fp';
 
 export const selectNavigationOrientation = (state) => state.calendar.navigationOrientation;
@@ -29,12 +31,31 @@ export const selectEventsInYear = (events, years) => events.filter((e) => (
 ));
 
 export const selectEventsByMonth = (events) => events.reduce((acc, cur) => {
-  const monthKey = `${cur.start.getFullYear()}-${cur.start.getMonth()}`;
-  if (!Array.isArray(acc[monthKey])) {
-    acc[monthKey] = [];
+  // const monthKey = `${cur.start.getFullYear()}-${cur.start.getMonth()}`;
+  // if (typeof acc[monthKey] === 'undefined') {
+  //   acc[monthKey] = new Array(getDaysInMonth(cur.start.getFullYear(), cur.start.getMonth()));
+  // }
+
+  const diff = differenceInDays(cur.start)(cur.end);
+  for (let i = 0; i <= diff; i++) {
+    const dateIndex = add({ days: i })(cur.start);
+    const monthKey = `${dateIndex.getFullYear()}-${dateIndex.getMonth()}`;
+    if (typeof acc[monthKey] === 'undefined') {
+      acc[monthKey] = new Array(getDaysInMonth(dateIndex));
+    }
+    if (typeof acc[monthKey][dateIndex.getDate()] === 'undefined') {
+      acc[monthKey][dateIndex.getDate()] = [];
+    }
+    acc[monthKey][dateIndex.getDate()].push(cur);
   }
 
-  acc[monthKey].push(cur);
+  //   const dateIndex = cur.start.getDate() + i;
+  //   if (!Array.isArray(acc[monthKey][dateIndex])) {
+  //     acc[monthKey][dateIndex] = [];
+  //   }
+  //   acc[monthKey][dateIndex].push(cur);
+  // }
+
   return acc;
 }, {});
 
