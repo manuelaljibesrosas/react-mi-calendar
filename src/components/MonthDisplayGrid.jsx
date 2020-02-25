@@ -19,6 +19,12 @@ import {
 } from 'date-fns/fp';
 import { navigationOrientations } from '../store/constants';
 import { tween } from '../store/animations';
+import Hammer from 'hammerjs';
+import {
+  animationStore,
+  animationStatus,
+  navigate,
+} from '../store/animationStore';
 // selectors
 import {
   selectNavigationOrientation,
@@ -50,7 +56,7 @@ const getRangeOfVisibleDaysFromPreviousMonth = (m) => {
 };
 
 const getRangeOfVisibleDaysFromNextMonth = (m) => {
-  const dayIndex = compose(getDay(), setDate(0), add({ months: 1 }));
+  const dayIndex = compose(getDay(), setDate(0), add({ months: 1 }))(m);
 
   if (dayIndex === 6) return [];
 
@@ -203,38 +209,80 @@ class MonthDisplayGrid extends React.Component {
   }
 
   animate(orientation) {
-    if (orientation === navigationOrientations.NONE) return;
+    if (
+      orientation === navigationOrientations.NONE
+      || typeof orientation === 'undefined'
+      || this.isAnimating
+    ) return;
 
     this.isAnimating = true;
 
     if (orientation === navigationOrientations.RIGHT) {
       tween({
-        from: 100,
-        to: 0,
+        from: 0,
+        to: -100,
         duration: 200,
         onUpdate: (value) => {
-          this.ref.current.style.transform = `translateX(${value}%)`;
+          animationStore.dispatch(navigate({
+            status: animationStatus.TICK,
+            value
+          }));
         },
         onComplete: () => {
           this.isAnimating = false;
+          this.props.navigateRight();
+          animationStore.dispatch(navigate({
+            status: animationStatus.COMPLETE,
+            value: 0,
+          }));
         },
       });
     }
 
     if (orientation === navigationOrientations.LEFT) {
       tween({
-        from: -100,
-        to: 0,
+        from: 0,
+        to: 100,
         duration: 200,
         onUpdate: (value) => {
-          this.ref.current.style.transform = `translateX(${value}%)`;
+          animationStore.dispatch(navigate({
+            status: animationStatus.TICK,
+            value
+          }));
         },
         onComplete: () => {
           this.isAnimating = false;
+          this.props.navigateLeft();
+          animationStore.dispatch(navigate({
+            status: animationStatus.COMPLETE,
+            value: 0,
+          }));
         },
       });
     }
   };
+
+  componentDidMount() {
+    const mc = new Hammer.Manager(this.ref.current);
+    const swipe = new Hammer.Swipe();
+    mc.add(swipe);
+    mc.on('swipeleft', () => {
+      this.animate(navigationOrientations.RIGHT);
+    });
+    mc.on('swiperight', () => {
+      this.animate(navigationOrientations.LEFT);
+    });
+
+    animationStore.subscribe(() => {
+      const { navigation } = animationStore.getState();
+
+      if (navigation.status === animationStatus.TICK) {
+        this.ref.current.style.transform = `translateX(${navigation.value}%)`;
+      } else if (navigation.status === animationStatus.COMPLETE) {
+        this.ref.current.style.transform = 'translateX(0)';
+      }
+    });
+  }
 
   render() {
     const {
@@ -248,13 +296,9 @@ class MonthDisplayGrid extends React.Component {
       // to transform: translateX(0)
       navigationOrientation,
       // actions
-      navigateLeft,
-      navigateRight,
+      // navigateLeft,
+      // navigateRight,
     } = this.props;
-
-    if (!this.isAnimating) {
-      this.animate(navigationOrientation);
-    }
 
     return (
       <div>
@@ -270,7 +314,7 @@ class MonthDisplayGrid extends React.Component {
               width: 10px; height: 20px;
               cursor: pointer;
             `}
-            onClick={navigateLeft}
+            onClick={() => this.animate(navigationOrientations.LEFT)}
           >
             <ChevronLeft
               css={css`
@@ -283,7 +327,7 @@ class MonthDisplayGrid extends React.Component {
               width: 10px; height: 20px;
               cursor: pointer;
             `}
-            onClick={navigateRight}
+            onClick={() => this.animate(navigationOrientations.RIGHT)}
           >
             <ChevronRight
               css={css`
@@ -295,26 +339,22 @@ class MonthDisplayGrid extends React.Component {
         <div
           ref={this.ref}
           css={css`
+            will-change: transform;
             position: relative; margin-bottom: 25px;
           `}
         >
-          {
-            navigationOrientation === navigationOrientations.RIGHT
-            && (
-              <div
-                key={compose(format('yyyy-MM-dd'), sub({ months: 1 }))(cursor)}
-                css={css`
-                  position: absolute; top: 0; left: 0;
-                  transform: translateX(-100%);
-                  height: 100%; width: 100%;
-                `}
-              >
-                <InnerCalendar
-                  cursor={sub({ months: 1 })(cursor)}
-                />
-              </div>
-            )
-          }
+          <div
+            key={compose(format('yyyy-MM-dd'), sub({ months: 1 }))(cursor)}
+            css={css`
+              position: absolute; top: 0; left: 0;
+              transform: translateX(-100%);
+              height: 100%; width: 100%;
+            `}
+          >
+            <InnerCalendar
+              cursor={sub({ months: 1 })(cursor)}
+            />
+          </div>
           <div
             key={format('yyyy-MM-dd')(cursor)}
             css={css`
@@ -325,23 +365,18 @@ class MonthDisplayGrid extends React.Component {
               cursor={cursor}
             />
           </div>
-          {
-            navigationOrientation === navigationOrientations.LEFT
-            && (
-              <div
-                key={compose(format('yyyy-MM-dd'), add({ months: 1 }))(cursor)}
-                css={css`
-                  position: absolute; top: 0; left: 0;
-                  transform: translateX(100%);
-                  height: 100%; width: 100%;
-                `}
-              >
-                <InnerCalendar
-                  cursor={add({ months: 1 })(cursor)}
-                />
-              </div>
-            )
-          }
+          <div
+            key={compose(format('yyyy-MM-dd'), add({ months: 1 }))(cursor)}
+            css={css`
+              position: absolute; top: 0; left: 0;
+              transform: translateX(100%);
+              height: 100%; width: 100%;
+            `}
+          >
+            <InnerCalendar
+              cursor={add({ months: 1 })(cursor)}
+            />
+          </div>
         </div>
       </div>
     );

@@ -18,6 +18,10 @@ import {
   views,
 } from '../store/constants';
 import { tween } from '../store/animations';
+import {
+  animationStore,
+  animationStatus,
+} from '../store/animationStore';
 // assets
 import EventsIcon from '../svg/events.svg';
 import CalendarIcon from '../svg/calendar.svg';
@@ -29,36 +33,6 @@ import {
 } from '../store/selectors';
 // actions
 import { push } from 'connected-react-router';
-
-// z-index hack to make emotion think the animation is
-// different and update on every prop change
-const getAnimation = (orientation) => {
-  if (orientation === navigationOrientations.NONE) return;
-
-  if (orientation === navigationOrientations.RIGHT) {
-    return keyframes`
-      from {
-        transform: translate3d(100%, 0, 0);
-        z-index: ${(Math.random() * 100).toFixed(0)}
-      }
-      to {
-        transform: translate3d(0, 0, 0);
-        z-index: ${(Math.random() * 100).toFixed(0)}
-      }
-    `;
-  }
-
-  return keyframes`
-    from {
-      transform: translate3d(-100%, 0, 0);
-      z-index: ${(Math.random() * 100).toFixed(0)}
-    }
-    to {
-      transform: translate3d(0, 0, 0);
-      z-index: ${(Math.random() * 100).toFixed(0)}
-    }
-  `;
-};
 
 export const calendarHeaderIconContainer = compose(
   connect(
@@ -131,57 +105,27 @@ class CalendarHeader extends React.Component {
   constructor(props) {
     super(props);
 
-    this.isAnimating = false;
     this.ref = React.createRef();
-
-    this.animate = this.animate.bind(this);
   }
 
-  animate(orientation) {
-    if (orientation === navigationOrientations.NONE) return;
+  componentDidMount() {
+    animationStore.subscribe(() => {
+      const { navigation } = animationStore.getState();
 
-    this.isAnimating = true;
-
-    if (orientation === navigationOrientations.RIGHT) {
-      tween({
-        from: 100,
-        to: 0,
-        duration: 200,
-        onUpdate: (value) => {
-          this.ref.current.style.transform = `translateX(${value}%)`;
-        },
-        onComplete: () => {
-          this.isAnimating = false;
-        },
-      });
-    }
-
-    if (orientation === navigationOrientations.LEFT) {
-      tween({
-        from: -100,
-        to: 0,
-        duration: 200,
-        onUpdate: (value) => {
-          this.ref.current.style.transform = `translateX(${value}%)`;
-        },
-        onComplete: () => {
-          this.isAnimating = false;
-        },
-      });
-    }
-  };
+      if (navigation.status === animationStatus.TICK) {
+        this.ref.current.style.transform = `translateX(${navigation.value}%)`;
+      } else if (navigation.status === animationStatus.COMPLETE) {
+        this.ref.current.style.transform = 'translateX(0)';
+      }
+    });
+  }
 
   render() {
     const {
       // state
       cursor,
-      navigationOrientation,
     } = this.props;
 
-    if (!this.isAnimating) {
-      this.animate(navigationOrientation);
-    }
-    
     return (
       <div
         css={css`
@@ -196,31 +140,26 @@ class CalendarHeader extends React.Component {
           <div
             css={css`
               overflow: hidden; width: 100px; height: 25px;
-              user-select: none;
             `}
           > 
             <div
               ref={this.ref}
               css={css`
+                will-change: transform;
                 position: relative;
                 width: 100%; height: 100%;
               `}
             >
-              {
-                navigationOrientation === navigationOrientations.RIGHT
-                && (
-                  <h3
-                    key={compose(format('yyyy-MM-dd'), sub({ months: 1 }))(cursor)}
-                    css={css`
-                      position: absolute; top: 0; left: -100%; margin: 0;
-                      width: 100%;
-                      font-size: 22px; font-weight: 500;
-                    `}
-                  >
-                    {compose(format('yyyy MMM'), sub({ months: 1 }))(cursor)}
-                  </h3>
-                )
-              }
+              <h3
+                key={compose(format('yyyy-MM-dd'), sub({ months: 1 }))(cursor)}
+                css={css`
+                  position: absolute; top: 0; left: -100%; margin: 0;
+                  width: 100%;
+                  font-size: 22px; font-weight: 500;
+                `}
+              >
+                {compose(format('yyyy MMM'), sub({ months: 1 }))(cursor)}
+              </h3>
               <h3
                 css={css`
                   position: absolute; top: 0; left: 0; margin: 0;
@@ -230,21 +169,16 @@ class CalendarHeader extends React.Component {
               >
                 {format('yyyy MMM')(cursor)}
               </h3>
-              {
-                navigationOrientation === navigationOrientations.LEFT
-                && (
-                  <h3
-                    key={compose(format('yyyy-MM-dd'), add({ months: 1 }))(cursor)}
-                    css={css`
-                      position: absolute; top: 0; left: 100%; margin: 0;
-                      width: 100%;
-                      font-size: 22px; font-weight: 500;
-                    `}
-                  >
-                    {compose(format('yyyy MMM'), add({ months: 1 }))(cursor)}
-                  </h3>
-                )
-              }
+              <h3
+                key={compose(format('yyyy-MM-dd'), add({ months: 1 }))(cursor)}
+                css={css`
+                  position: absolute; top: 0; left: 100%; margin: 0;
+                  width: 100%;
+                  font-size: 22px; font-weight: 500;
+                `}
+              >
+                {compose(format('yyyy MMM'), add({ months: 1 }))(cursor)}
+              </h3>
             </div>
           </div>
           <CalendarHeaderIcon />
