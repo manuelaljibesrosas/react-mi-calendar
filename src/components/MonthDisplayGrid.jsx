@@ -18,7 +18,10 @@ import {
   isSameMonth,
 } from 'date-fns/fp';
 import { navigationOrientations } from '../store/constants';
-import { tween } from '../store/animations';
+import {
+  easings,
+  tween,
+} from '../store/animations';
 import Hammer from 'hammerjs';
 import {
   animationStore,
@@ -208,7 +211,7 @@ class MonthDisplayGrid extends React.Component {
     this.animate = this.animate.bind(this);
   }
 
-  animate(orientation) {
+  animate(orientation, from = 0, easing = easings.EASE_OUT) {
     if (
       orientation === navigationOrientations.NONE
       || typeof orientation === 'undefined'
@@ -219,9 +222,10 @@ class MonthDisplayGrid extends React.Component {
 
     if (orientation === navigationOrientations.RIGHT) {
       tween({
-        from: 0,
+        from,
         to: -100,
         duration: 200,
+        easing,
         onUpdate: (value) => {
           animationStore.dispatch(navigate({
             status: animationStatus.TICK,
@@ -241,9 +245,10 @@ class MonthDisplayGrid extends React.Component {
 
     if (orientation === navigationOrientations.LEFT) {
       tween({
-        from: 0,
+        from,
         to: 100,
         duration: 200,
+        easing,
         onUpdate: (value) => {
           animationStore.dispatch(navigate({
             status: animationStatus.TICK,
@@ -263,14 +268,55 @@ class MonthDisplayGrid extends React.Component {
   };
 
   componentDidMount() {
-    const mc = new Hammer.Manager(this.ref.current);
-    const swipe = new Hammer.Swipe();
-    mc.add(swipe);
-    mc.on('swipeleft', () => {
-      this.animate(navigationOrientations.RIGHT);
+    const refWidth = this.ref.current.clientWidth;
+    const manager = new Hammer.Manager(this.ref.current);
+    const pan = new Hammer.Pan();
+    manager.add(pan);
+    manager.on('panstart panmove', (e) => {
+      animationStore.dispatch(navigate({
+        status: animationStatus.TICK,
+        value: Math.max(Math.min(e.deltaX / refWidth, 1), -1) * 100,
+      }));
     });
-    mc.on('swiperight', () => {
-      this.animate(navigationOrientations.LEFT);
+    manager.on('panend', (e) => {
+      // swipe
+      if (Math.abs(e.velocityX) > .5 && Math.abs(e.deltaX) > 90) {
+        if (e.deltaX > 0) {
+          this.animate(navigationOrientations.LEFT, Math.max(Math.min(e.deltaX / refWidth, 1), -1) * 100, easings.LINEAR);
+        } else {
+          this.animate(navigationOrientations.RIGHT, Math.max(Math.min(e.deltaX / refWidth, 1), -1) * 100, easings.LINEAR);
+        }
+      }
+      // panned more than 75% of the total width of the block
+      else if (Math.abs(Math.max(Math.min(e.deltaX / refWidth, 1), -1)) > .5) {
+        if (e.deltaX > 0) {
+          this.animate(navigationOrientations.LEFT, Math.max(Math.min(e.deltaX / refWidth, 1), -1) * 100, easings.LINEAR);
+        } else {
+          this.animate(navigationOrientations.RIGHT, Math.max(Math.min(e.deltaX / refWidth, 1), -1) * 100, easings.LINEAR);
+        }
+      }
+      // pan was too subtle to trigger navigation
+      else {
+        this.isAnimating = true;
+        tween({
+          from: Math.max(Math.min(e.deltaX / refWidth, 1), -1) * 100,
+          to: 0,
+          duration: 200,
+          onUpdate: (value) => {
+            animationStore.dispatch(navigate({
+              status: animationStatus.TICK,
+              value
+            }));
+          },
+          onComplete: () => {
+            this.isAnimating = false;
+            animationStore.dispatch(navigate({
+              status: animationStatus.COMPLETE,
+              value: 0,
+            }));
+          },
+        });
+      }
     });
 
     animationStore.subscribe(() => {
