@@ -1,5 +1,6 @@
 /** @jsx jsx */
-import { jsx, css, keyframes } from '@emotion/core';
+import React from 'react';
+import { jsx, css } from '@emotion/core';
 import { connect } from 'react-redux';
 import {
   compose,
@@ -16,6 +17,7 @@ import {
   navigationOrientations,
   views,
 } from '../store/constants';
+import { tween } from '../store/animations';
 // assets
 import EventsIcon from '../svg/events.svg';
 import CalendarIcon from '../svg/calendar.svg';
@@ -118,101 +120,148 @@ export const PureCalendarHeaderIcon = ({
 
 export const CalendarHeaderIcon = calendarHeaderIconContainer(PureCalendarHeaderIcon);
 
-export const calendarHeaderContainer = compose(
-  connect(
-    (state) => ({
-      cursor: selectCursor(state),
-      navigationOrientation: selectNavigationOrientation(state),
-    }),
-  ),
-  withPropsOnChange(['cursor'], (props) => ({
-    ...props,
-    animation: getAnimation(props.navigationOrientation),
-  })),
+export const calendarHeaderContainer = connect(
+  (state) => ({
+    cursor: selectCursor(state),
+    navigationOrientation: selectNavigationOrientation(state),
+  }),
 );
 
-export const PureCalendarHeader = ({
-  // state
-  cursor,
-  navigationOrientation,
-  animation,
-}) => (
-  <div
-    css={css`
-      border-bottom: 1px solid #f1f1f1; padding: 15px 15px 8px; overflow-y: hidden;
-    `}
-  >
-    <div
-      css={css`
-        display: flex; align-items: center; justify-content: space-between;
-      `}
-    >
+class CalendarHeader extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.isAnimating = false;
+    this.ref = React.createRef();
+
+    this.animate = this.animate.bind(this);
+  }
+
+  animate(orientation) {
+    if (orientation === navigationOrientations.NONE) return;
+
+    this.isAnimating = true;
+
+    if (orientation === navigationOrientations.RIGHT) {
+      tween({
+        from: 100,
+        to: 0,
+        duration: 200,
+        onUpdate: (value) => {
+          this.ref.current.style.transform = `translateX(${value}%)`;
+        },
+        onComplete: () => {
+          this.isAnimating = false;
+        },
+      });
+    }
+
+    if (orientation === navigationOrientations.LEFT) {
+      tween({
+        from: -100,
+        to: 0,
+        duration: 200,
+        onUpdate: (value) => {
+          this.ref.current.style.transform = `translateX(${value}%)`;
+        },
+        onComplete: () => {
+          this.isAnimating = false;
+        },
+      });
+    }
+  };
+
+  render() {
+    const {
+      // state
+      cursor,
+      navigationOrientation,
+    } = this.props;
+
+    if (!this.isAnimating) {
+      this.animate(navigationOrientation);
+    }
+    
+    return (
       <div
         css={css`
-          overflow: hidden; width: 100px; height: 25px;
-          user-select: none;
+          border-bottom: 1px solid #f1f1f1; padding: 15px 15px 8px; overflow-y: hidden;
         `}
-      > 
+      >
         <div
           css={css`
-            animation: ${animation} 200ms linear;
-            position: relative;
-            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: space-between;
           `}
         >
-          {
-            navigationOrientation === navigationOrientations.RIGHT
-            && (
-              <h3
-                key={compose(format('yyyy-MM-dd'), sub({ months: 1 }))(cursor)}
-                css={css`
-                  position: absolute; top: 0; left: -100%; margin: 0;
-                  width: 100%;
-                  font-size: 22px; font-weight: 500;
-                `}
-              >
-                {compose(format('yyyy MMM'), sub({ months: 1 }))(cursor)}
-              </h3>
-            )
-          }
-          <h3
+          <div
             css={css`
-              position: absolute; top: 0; left: 0; margin: 0;
-              width: 100%;
-              font-size: 22px; font-weight: 500;
+              overflow: hidden; width: 100px; height: 25px;
+              user-select: none;
             `}
-          >
-            {format('yyyy MMM')(cursor)}
-          </h3>
-          {
-            navigationOrientation === navigationOrientations.LEFT
-            && (
+          > 
+            <div
+              ref={this.ref}
+              css={css`
+                position: relative;
+                width: 100%; height: 100%;
+              `}
+            >
+              {
+                navigationOrientation === navigationOrientations.RIGHT
+                && (
+                  <h3
+                    key={compose(format('yyyy-MM-dd'), sub({ months: 1 }))(cursor)}
+                    css={css`
+                      position: absolute; top: 0; left: -100%; margin: 0;
+                      width: 100%;
+                      font-size: 22px; font-weight: 500;
+                    `}
+                  >
+                    {compose(format('yyyy MMM'), sub({ months: 1 }))(cursor)}
+                  </h3>
+                )
+              }
               <h3
-                key={compose(format('yyyy-MM-dd'), add({ months: 1 }))(cursor)}
                 css={css`
-                  position: absolute; top: 0; left: 100%; margin: 0;
+                  position: absolute; top: 0; left: 0; margin: 0;
                   width: 100%;
                   font-size: 22px; font-weight: 500;
                 `}
               >
-                {compose(format('yyyy MMM'), add({ months: 1 }))(cursor)}
+                {format('yyyy MMM')(cursor)}
               </h3>
-            )
-          }
+              {
+                navigationOrientation === navigationOrientations.LEFT
+                && (
+                  <h3
+                    key={compose(format('yyyy-MM-dd'), add({ months: 1 }))(cursor)}
+                    css={css`
+                      position: absolute; top: 0; left: 100%; margin: 0;
+                      width: 100%;
+                      font-size: 22px; font-weight: 500;
+                    `}
+                  >
+                    {compose(format('yyyy MMM'), add({ months: 1 }))(cursor)}
+                  </h3>
+                )
+              }
+            </div>
+          </div>
+          <CalendarHeaderIcon />
         </div>
       </div>
-      <CalendarHeaderIcon />
-    </div>
-  </div>
-);
+    );
+  }
+}
 
-PureCalendarHeader.propTypes = {
+CalendarHeader.propTypes = {
   // view: PropTypes.oneOf(Object.values(views)).isRequired,
   cursor: PropTypes.object.isRequired,
   // toggleEventsView: PropTypes.func.isRequired,
   navigationOrientation: PropTypes.oneOf(Object.values(navigationOrientations)).isRequired,
 };
 
+const ConnectedCalendarHeader = calendarHeaderContainer(CalendarHeader);
 
-export default calendarHeaderContainer(PureCalendarHeader);
+export default ConnectedCalendarHeader;
 

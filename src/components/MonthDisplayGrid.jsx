@@ -1,5 +1,6 @@
 /** @jsx jsx */
-import { jsx, css, keyframes } from '@emotion/core';
+import React from 'react';
+import { jsx, css } from '@emotion/core';
 import { connect } from 'react-redux';
 import {
   compose,
@@ -17,6 +18,7 @@ import {
   isSameMonth,
 } from 'date-fns/fp';
 import { navigationOrientations } from '../store/constants';
+import { tween } from '../store/animations';
 // selectors
 import {
   selectNavigationOrientation,
@@ -34,56 +36,6 @@ import ChevronLeft from '../svg/chevron-left.svg';
 import ChevronRight from '../svg/chevron-right.svg';
 import TypeFace2 from './TypeFace2';
 import CalendarDayCell from './CalendarDayCell';
-
-// const translateFromRight = keyframes`
-//   from {
-//     transform: translate3d(100%, 0, 0);
-//     z-index: ${(Math.random() * 100).toFixed(0)}
-//   }
-//   to {
-//     transform: translate3d(0, 0, 0);
-//     z-index: ${(Math.random() * 100).toFixed(0)}
-//   }
-// `;
-
-// const translateFromLeft = keyframes`
-//   from {
-//     transform: translate3d(-100%, 0, 0);
-//   }
-//   to {
-//     transform: translate3d(0, 0, 0);
-//   }
-// `;
-
-// z-index hack to make emotion think the animation is
-// different and update on every prop change
-const getAnimation = (orientation) => {
-  if (orientation === navigationOrientations.NONE) return;
-
-  if (orientation === navigationOrientations.RIGHT) {
-    return keyframes`
-      from {
-        transform: translate3d(100%, 0, 0);
-        z-index: ${(Math.random() * 100).toFixed(0)}
-      }
-      to {
-        transform: translate3d(0, 0, 0);
-        z-index: ${(Math.random() * 100).toFixed(0)}
-      }
-    `;
-  }
-
-  return keyframes`
-    from {
-      transform: translate3d(-100%, 0, 0);
-      z-index: ${(Math.random() * 100).toFixed(0)}
-    }
-    to {
-      transform: translate3d(0, 0, 0);
-      z-index: ${(Math.random() * 100).toFixed(0)}
-    }
-  `;
-};
 
 const getRangeOfVisibleDaysFromPreviousMonth = (m) => {
   const firstDayOfMonth = setDate(1)(m);
@@ -240,116 +192,169 @@ const monthDisplayGridContainer = connect(
   }),
 );
 
-const PureMonthDisplayGrid = ({
-  // state
-  cursor,
-  // if the cursor moved to the next month, this prop should
-  // be set to 'RIGHT', and we should render two InnerCalendars
-  // one for the previous month, and another for the new month,
-  // then, we use this prop to assign an animation to the
-  // wrapper that will animate from transform: translateX(-100%)
-  // to transform: translateX(0)
-  navigationOrientation,
-  // actions
-  navigateLeft,
-  navigateRight,
-}) => (
-  <div>
-    <div
-      css={css`
-        margin: 8px 0;
-        display: flex; justify-content: space-between; padding: 0 15px;
-        height: 8px; align-items: center;
-      `}
-    >
-      <div
-        css={css`
-          width: 10px; height: 20px;
-          cursor: pointer;
-        `}
-        onClick={navigateLeft}
-      >
-        <ChevronLeft
-          css={css`
-            width: 100%; height: 100%;
-          `}
-        />
-      </div>
-      <div
-        css={css`
-          width: 10px; height: 20px;
-          cursor: pointer;
-        `}
-        onClick={navigateRight}
-      >
-        <ChevronRight
-          css={css`
-            width: 100%; height: 100%;
-          `}
-        />
-      </div>
-    </div>
-    <div
-      css={css`
-        animation: ${getAnimation(navigationOrientation)} 200ms linear;
-        position: relative; margin-bottom: 25px;
-      `}
-    >
-      {
-        navigationOrientation === navigationOrientations.RIGHT
-        && (
-          <div
-            key={compose(format('yyyy-MM-dd'), sub({ months: 1 }))(cursor)}
-            css={css`
-              position: absolute; top: 0; left: 0;
-              transform: translateX(-100%);
-              height: 100%; width: 100%;
-            `}
-          >
-            <InnerCalendar
-              cursor={sub({ months: 1 })(cursor)}
-            />
-          </div>
-        )
-      }
-      <div
-        key={format('yyyy-MM-dd')(cursor)}
-        css={css`
-          height: 100%; width: 100%;
-        `}
-      >
-        <InnerCalendar
-          cursor={cursor}
-        />
-      </div>
-      {
-        navigationOrientation === navigationOrientations.LEFT
-        && (
-          <div
-            key={compose(format('yyyy-MM-dd'), add({ months: 1 }))(cursor)}
-            css={css`
-              position: absolute; top: 0; left: 0;
-              transform: translateX(100%);
-              height: 100%; width: 100%;
-            `}
-          >
-            <InnerCalendar
-              cursor={add({ months: 1 })(cursor)}
-            />
-          </div>
-        )
-      }
-    </div>
-  </div>
-);
+class MonthDisplayGrid extends React.Component {
+  constructor(props) {
+    super(props);
 
-PureMonthDisplayGrid.propTypes = {
+    this.isAnimating = false;
+    this.ref = React.createRef();
+
+    this.animate = this.animate.bind(this);
+  }
+
+  animate(orientation) {
+    if (orientation === navigationOrientations.NONE) return;
+
+    this.isAnimating = true;
+
+    if (orientation === navigationOrientations.RIGHT) {
+      tween({
+        from: 100,
+        to: 0,
+        duration: 200,
+        onUpdate: (value) => {
+          this.ref.current.style.transform = `translateX(${value}%)`;
+        },
+        onComplete: () => {
+          this.isAnimating = false;
+        },
+      });
+    }
+
+    if (orientation === navigationOrientations.LEFT) {
+      tween({
+        from: -100,
+        to: 0,
+        duration: 200,
+        onUpdate: (value) => {
+          this.ref.current.style.transform = `translateX(${value}%)`;
+        },
+        onComplete: () => {
+          this.isAnimating = false;
+        },
+      });
+    }
+  };
+
+  render() {
+    const {
+      // state
+      cursor,
+      // if the cursor moved to the next month, this prop should
+      // be set to 'RIGHT', and we should render two InnerCalendars
+      // one for the previous month, and another for the new month,
+      // then, we use this prop to assign an animation to the
+      // wrapper that will animate from transform: translateX(-100%)
+      // to transform: translateX(0)
+      navigationOrientation,
+      // actions
+      navigateLeft,
+      navigateRight,
+    } = this.props;
+
+    if (!this.isAnimating) {
+      this.animate(navigationOrientation);
+    }
+
+    return (
+      <div>
+        <div
+          css={css`
+            margin: 8px 0;
+            display: flex; justify-content: space-between; padding: 0 15px;
+            height: 8px; align-items: center;
+          `}
+        >
+          <div
+            css={css`
+              width: 10px; height: 20px;
+              cursor: pointer;
+            `}
+            onClick={navigateLeft}
+          >
+            <ChevronLeft
+              css={css`
+                width: 100%; height: 100%;
+              `}
+            />
+          </div>
+          <div
+            css={css`
+              width: 10px; height: 20px;
+              cursor: pointer;
+            `}
+            onClick={navigateRight}
+          >
+            <ChevronRight
+              css={css`
+                width: 100%; height: 100%;
+              `}
+            />
+          </div>
+        </div>
+        <div
+          ref={this.ref}
+          css={css`
+            position: relative; margin-bottom: 25px;
+          `}
+        >
+          {
+            navigationOrientation === navigationOrientations.RIGHT
+            && (
+              <div
+                key={compose(format('yyyy-MM-dd'), sub({ months: 1 }))(cursor)}
+                css={css`
+                  position: absolute; top: 0; left: 0;
+                  transform: translateX(-100%);
+                  height: 100%; width: 100%;
+                `}
+              >
+                <InnerCalendar
+                  cursor={sub({ months: 1 })(cursor)}
+                />
+              </div>
+            )
+          }
+          <div
+            key={format('yyyy-MM-dd')(cursor)}
+            css={css`
+              height: 100%; width: 100%;
+            `}
+          >
+            <InnerCalendar
+              cursor={cursor}
+            />
+          </div>
+          {
+            navigationOrientation === navigationOrientations.LEFT
+            && (
+              <div
+                key={compose(format('yyyy-MM-dd'), add({ months: 1 }))(cursor)}
+                css={css`
+                  position: absolute; top: 0; left: 0;
+                  transform: translateX(100%);
+                  height: 100%; width: 100%;
+                `}
+              >
+                <InnerCalendar
+                  cursor={add({ months: 1 })(cursor)}
+                />
+              </div>
+            )
+          }
+        </div>
+      </div>
+    );
+  }
+}
+
+MonthDisplayGrid.propTypes = {
   cursor: PropTypes.instanceOf(Date).isRequired,
   navigationOrientation: PropTypes.oneOf(Object.values(navigationOrientations)).isRequired,
   navigateLeft: PropTypes.func.isRequired,
   navigateRight: PropTypes.func.isRequired,
 };
 
-const MonthDisplayGrid = monthDisplayGridContainer(PureMonthDisplayGrid);
+const ConnectedMonthDisplayGrid = monthDisplayGridContainer(MonthDisplayGrid);
 
-export default MonthDisplayGrid;
+export default ConnectedMonthDisplayGrid;
