@@ -143,41 +143,65 @@ class CalendarHeader extends React.Component {
             `}
           > 
             <div
-              ref={this.ref}
               css={css`
-                will-change: transform;
                 position: relative;
                 width: 100%; height: 100%;
               `}
             >
               <h3
-                key={compose(format('yyyy-MM-dd'), sub({ months: 1 }))(cursor)}
-                css={css`
-                  position: absolute; top: 0; left: -100%; margin: 0;
-                  width: 100%;
-                  font-size: 22px; font-weight: 500;
-                `}
-              >
-                {compose(format('yyyy MMM'), sub({ months: 1 }))(cursor)}
-              </h3>
-              <h3
                 css={css`
                   position: absolute; top: 0; left: 0; margin: 0;
-                  width: 100%;
+                  width: 100%; display: flex;
                   font-size: 22px; font-weight: 500;
                 `}
               >
-                {format('yyyy MMM')(cursor)}
-              </h3>
-              <h3
-                key={compose(format('yyyy-MM-dd'), add({ months: 1 }))(cursor)}
-                css={css`
-                  position: absolute; top: 0; left: 100%; margin: 0;
-                  width: 100%;
-                  font-size: 22px; font-weight: 500;
-                `}
-              >
-                {compose(format('yyyy MMM'), add({ months: 1 }))(cursor)}
+                <div
+                  css={css`
+                    margin-right: 5px;
+                  `}
+                >
+                  {format('yyyy')(cursor)}
+                </div>
+                <div
+                  css={css`
+                    overflow: hidden;
+                  `}
+                >
+                  <div
+                    ref={this.ref}
+                    css={css`
+                      will-change: transform;
+                      position: relative;
+                      width: 40px;
+                    `}
+                  >
+                    <span
+                      css={css`
+                        position: absolute; top: 0; left: 0;
+                        transform: translateX(-100%);
+                        width: 40px;
+                      `}
+                    >
+                      {compose(format('MMM'), sub({ months: 1 }))(cursor)}
+                    </span>
+                    <span
+                      css={css`
+                        width: 40px;
+                      `}
+                    >
+                      {format('MMM')(cursor)}
+                    </span>
+                    <span
+                      css={css`
+                        position: absolute; top: 0; left: 0;
+                        transform: translateX(100%);
+                        width: 40px;
+                      `}
+                    >
+                      {compose(format('MMM'), add({ months: 1 }))(cursor)}
+                    </span>
+                  </div>
+                </div>
               </h3>
             </div>
           </div>
