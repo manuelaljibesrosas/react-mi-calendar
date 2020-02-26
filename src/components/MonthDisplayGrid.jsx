@@ -121,7 +121,8 @@ const PureInnerCalendar = ({
   <div
     css={css`
       display: grid; grid-template-columns: repeat(7, auto);
-      grid-template-rows: 30px; height: 100%; place-items: stretch;
+      grid-template-rows: auto; place-items: stretch;
+      height: 380px;
     `}
   >
     <div css={monthLabel}>
@@ -353,6 +354,10 @@ class MonthDisplayGrid extends React.Component {
             margin: 8px 0;
             display: flex; justify-content: space-between; padding: 0 15px;
             height: 8px; align-items: center;
+
+            @media (max-width: 420px) {
+              display: none;
+            }
           `}
         >
           <div
