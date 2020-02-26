@@ -172,21 +172,21 @@ class CalendarHeader extends React.Component {
                     css={css`
                       will-change: transform;
                       position: relative;
-                      width: 40px;
+                      width: 50px;
                     `}
                   >
                     <span
                       css={css`
                         position: absolute; top: 0; left: 0;
                         transform: translateX(-100%);
-                        width: 40px;
+                        width: 100%;
                       `}
                     >
                       {compose(format('MMM'), sub({ months: 1 }))(cursor)}
                     </span>
                     <span
                       css={css`
-                        width: 40px;
+                        width: 100%;
                       `}
                     >
                       {format('MMM')(cursor)}
@@ -195,7 +195,7 @@ class CalendarHeader extends React.Component {
                       css={css`
                         position: absolute; top: 0; left: 0;
                         transform: translateX(100%);
-                        width: 40px;
+                        width: 100%;
                       `}
                     >
                       {compose(format('MMM'), add({ months: 1 }))(cursor)}
