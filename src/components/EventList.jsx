@@ -40,6 +40,7 @@ export const PureEventList = ({
   <div
     css={css`
       display: flex; flex-direction: column;
+      padding-bottom: 50px;
     `}
   >
     {

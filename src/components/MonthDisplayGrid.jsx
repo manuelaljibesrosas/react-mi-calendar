@@ -17,12 +17,12 @@ import {
   format,
   isSameMonth,
 } from 'date-fns/fp';
+import Hammer from 'hammerjs';
 import { navigationOrientations } from '../store/constants';
 import {
   easings,
   tween,
 } from '../store/animations';
-import Hammer from 'hammerjs';
 import {
   animationStore,
   animationStatus,
@@ -41,9 +41,6 @@ import {
   navigateRight,
 } from '../store/actions';
 // components
-import ChevronLeft from '../svg/chevron-left.svg';
-import ChevronRight from '../svg/chevron-right.svg';
-import TypeFace2 from './TypeFace2';
 import CalendarDayCell from './CalendarDayCell';
 
 const getRangeOfVisibleDaysFromPreviousMonth = (m) => {
@@ -66,11 +63,6 @@ const getRangeOfVisibleDaysFromNextMonth = (m) => {
   // eslint-disable-next-line prefer-spread
   return Array.apply(null, { length: (6 - dayIndex) }).map(Number.call, Number);
 };
-
-const monthLabel = css`
-  place-self: center;
-  user-select: none;
-`;
 
 const innerCalendarContainer = compose(
   connect(
@@ -125,27 +117,6 @@ const PureInnerCalendar = ({
       height: 380px;
     `}
   >
-    <div css={monthLabel}>
-      <TypeFace2 size="10px">Sun</TypeFace2>
-    </div>
-    <div css={monthLabel}>
-      <TypeFace2 size="10px">Mon</TypeFace2>
-    </div>
-    <div css={monthLabel}>
-      <TypeFace2 size="10px">Tue</TypeFace2>
-    </div>
-    <div css={monthLabel}>
-      <TypeFace2 size="10px">Wed</TypeFace2>
-    </div>
-    <div css={monthLabel}>
-      <TypeFace2 size="10px">Thu</TypeFace2>
-    </div>
-    <div css={monthLabel}>
-      <TypeFace2 size="10px">Fri</TypeFace2>
-    </div>
-    <div css={monthLabel}>
-      <TypeFace2 size="10px">Sat</TypeFace2>
-    </div>
     {
       getRangeOfVisibleDaysFromPreviousMonth(cursor).map((day) => (
         <CalendarDayCell
@@ -281,7 +252,7 @@ class MonthDisplayGrid extends React.Component {
     });
     manager.on('panend', (e) => {
       // swipe
-      if (Math.abs(e.velocityX) > .5 && Math.abs(e.deltaX) > 90) {
+      if (Math.abs(e.velocityX) > .5 && Math.abs(e.deltaX) > 50) {
         if (e.deltaX > 0) {
           this.animate(navigationOrientations.LEFT, Math.max(Math.min(e.deltaX / refWidth, 1), -1) * 100, easings.LINEAR);
         } else {
@@ -349,44 +320,6 @@ class MonthDisplayGrid extends React.Component {
 
     return (
       <div>
-        <div
-          css={css`
-            margin: 8px 0;
-            display: flex; justify-content: space-between; padding: 0 15px;
-            height: 8px; align-items: center;
-
-            @media (max-width: 420px) {
-              display: none;
-            }
-          `}
-        >
-          <div
-            css={css`
-              width: 10px; height: 20px;
-              cursor: pointer;
-            `}
-            onClick={() => this.animate(navigationOrientations.LEFT)}
-          >
-            <ChevronLeft
-              css={css`
-                width: 100%; height: 100%;
-              `}
-            />
-          </div>
-          <div
-            css={css`
-              width: 10px; height: 20px;
-              cursor: pointer;
-            `}
-            onClick={() => this.animate(navigationOrientations.RIGHT)}
-          >
-            <ChevronRight
-              css={css`
-                width: 100%; height: 100%;
-              `}
-            />
-          </div>
-        </div>
         <div
           ref={this.ref}
           css={css`

@@ -24,6 +24,7 @@ export const selectNavigationHistory = (state) => (
   state.calendar.navigationHistory
 );
 export const selectScrollTop = (state) => state.calendar.scrollTop;
+export const selectSearchKeyword = (state) => state.calendar.searchKeyword;
 
 export const selectEventsInYear = (events, years) => events.filter((e) => (
   years.includes(format('yyyy')(e.start))

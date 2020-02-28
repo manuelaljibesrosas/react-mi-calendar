@@ -9,8 +9,8 @@ export const NAVIGATE = 'NAVIGATE';
 export const ADD_EVENT = 'ADD_EVENT';
 export const UPDATE_EVENT = 'UPDATE_EVENT';
 export const REMOVE_EVENT = 'REMOVE_EVENT';
-export const ADD_BULK_EVENTS = 'ADD_BULK_EVENTS';
 export const SET_SELECTED_EVENT = 'SET_SELECTED_EVENT';
+export const SET_SEARCH_KEYWORD = 'SET_SEARCH_KEYWORD';
 export const UPDATE_SCROLL_TOP = 'UPDATE_SCROLL_TOP';
 export const RESET = 'RESET';
 
@@ -22,8 +22,8 @@ export const setDisplayDate = createAction(SET_DISPLAY_DATE);
 export const addEvent = createAction(ADD_EVENT);
 export const updateEvent = createAction(UPDATE_EVENT);
 export const removeEvent = createAction(REMOVE_EVENT);
-export const addBulkEvents = createAction(ADD_BULK_EVENTS);
 export const setSelectedEvent = createAction(SET_SELECTED_EVENT);
+export const setSearchKeyword = createAction(SET_SEARCH_KEYWORD);
 export const reset = createAction(RESET);
 
 export const navigate = createAction(NAVIGATE);

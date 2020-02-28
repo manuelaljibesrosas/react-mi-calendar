@@ -9,13 +9,17 @@ const CalendarMonthDisplay = () => (
   <div
     css={css`
       height: 100%; display: flex; flex-direction: column;
+      overflow-x: hidden; overflow-y: auto;
     `}
   >
     <MonthDisplayGrid />
     <div
       css={css`
-      margin: 5px 0;
-        padding: 0 15px; flex: 1; overflow: auto;
+        padding: 0 15px; flex: 1; height: fit-content;
+
+        @media (min-width: 421px) {
+          margin: 0 20px;
+        }
     `}
     >
       <EventList />

@@ -1,4 +1,5 @@
 /** @jsx jsx */
+import React from 'react';
 import { jsx, css } from '@emotion/core';
 import { connect } from 'react-redux';
 import {
@@ -17,20 +18,24 @@ import {
   getDate,
   setDate,
 } from 'date-fns/fp';
+import Hammer from 'hammerjs';
 import PropTypes from 'prop-types';
 import { views } from '../store/constants';
 import {
   searchEvents,
   sortEvents,
 } from '../store/utils';
-// assets
-import SearchIcon from '../svg/search.svg';
+import {
+  easings,
+  tween,
+} from '../store/animations';
 // selectors
 import {
   selectEvents,
   selectEventsByMonth,
   selectEventsInYear,
   selectCursor,
+  selectSearchKeyword,
 } from '../store/selectors';
 // actions
 import { setSelectedEvent } from '../store/actions';
@@ -141,7 +146,11 @@ const EventList = ({
 }) => (
   <div
     css={css`
-      padding: 15px; flex: 1; overflow-y: auto;
+      padding: 15px; height: 1000px;
+
+      @media (min-width: 421px) {
+        margin: 0 20px;
+      }
     `}
   >
     {
@@ -232,7 +241,7 @@ const EventGroup = ({
 }) => (
   <RoundedBox
     css={css`
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     `}
   >
     <h3
@@ -264,92 +273,28 @@ const EventGroup = ({
   </RoundedBox>
 );
 
-export const PureEvents = ({
-  // state
-  filteredEvents,
-  cursor,
-  state: {
-    yearsToDisplay,
-  },
-  // actions
-  handleSearch,
-  handleShowEventsFromYear,
-}) => (
-  <div
-    css={css`
-      display: flex; flex-direction: column; height: 100%;
-    `}
-  >
-    <div
-      css={css`
-        position: relative; margin: 0 15px 15px;
-        height: 40px;
-      `}
-    >
-      <SearchIcon
-        css={css`
-          position: absolute; top: 50%; left: 14px; transform: translate(0, -50%);
-          height: 14px; width: 14px;
-        `}
-      />
-      <input
-        type="text"
-        onChange={handleSearch}
-        css={css`
-          margin: 0;
-          display: block; width: 100%; padding: 0 15px 0 38px; height: 100%; border: none;
-          background-color: #e6e6e6; border-radius: 6px;
-          &:focus {
-            outline: none;
-          }
-        `}
-      />
-    </div>
-    <EventList
-      yearsToDisplay={yearsToDisplay}
-      events={filteredEvents}
-      handleShowEventsFromYear={handleShowEventsFromYear}
-    />
-    <AddEventButton />
-  </div>
-);
-
-PureEvents.propTypes = {
-  // eslint-disable-next-line react/forbid-prop-types
-  filteredEvents: PropTypes.object.isRequired,
-  handleSearch: PropTypes.func.isRequired,
-};
-
 export const eventsContainer = compose(
   connect(
     (state) => ({
       events: selectEvents(state),
       cursor: selectCursor(state),
+      keyword: selectSearchKeyword(state),
     }),
   ),
-  withState('state', 'setState', ({ cursor }) => ({
-    keyword: '',
-    cursor,
-    yearsToDisplay: [format('yyyy')(cursor)],
-  })),
+  // withState('state', 'setState', ({ cursor }) => ({
+  //   keyword: '',
+  //   cursor,
+  //   yearsToDisplay: [format('yyyy')(cursor)],
+  // })),
   withPropsOnChange(
-    ['state', 'events'],
+    // ['state', 'events'],
+    ['events', 'keyword'],
     ({
-      state: {
-        keyword,
-        cursor,
-        yearsToDisplay,
-      },
+      keyword,
       events,
     }) => {
-      const filteredEvents = selectEventsByMonth(
-        sortEvents(
-          selectEventsInYear(
-            events,
-            yearsToDisplay,
-          ),
-        ),
-      );
+      const filteredEvents = selectEventsByMonth(events);
+
       for (const month in filteredEvents) {
         filteredEvents[month] = filteredEvents[month].map((date) => {
           if (!date) {
@@ -368,21 +313,143 @@ export const eventsContainer = compose(
     },
   ),
   withHandlers({
-    handleSearch: ({
-      state,
-      setState,
-    }) => (e) => setState({
-      ...state,
-      keyword: e.target.value,
-    }),
-    handleShowEventsFromYear: ({
-      state,
-      setState,
-    }) => (year) => setState({
-      ...state,
-      yearsToDisplay: state.yearsToDisplay.concat([year]).sort(),
-    }),
+    // handleShowEventsFromYear: ({
+    //   state,
+    //   setState,
+    // }) => (year) => setState({
+    //   ...state,
+    //   yearsToDisplay: state.yearsToDisplay.concat([year]).sort(),
+    // }),
   }),
 );
 
-export default eventsContainer(PureEvents);
+class Events extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      yearsToDisplay: [format('yyyy')(props.cursor)],
+    };
+    this.ref = React.createRef();
+  }
+
+  componentDidMount() {
+    const refHeight = this.ref.current.clientHeight;
+    const scrollableContentHeight = this.ref.current.firstChild.clientHeight;
+    const scroller = this.ref.current;
+    const scrollerTracker = {
+      value: 0,
+      distanceTraveledSinceLastBecameZero: 0,
+    };
+    let yOffset = 0;
+    let areaOffset = 0;
+    let translateOffset = 0;
+    const directionTracker = {
+      direction: 0,
+      offset: 0,
+    };
+    const manager = new Hammer.Manager(this.ref.current);
+    const pan = new Hammer.Pan({
+      direction: Hammer.DIRECTION_VERTICAL, 
+    });
+    manager.add(pan);
+    manager.on('panstart', (e) => {
+      scrollerTracker.value = scroller.scrollTop;
+      directionTracker.direction = e.direction;
+    });
+    manager.on('panmove', (e) => {
+      if (e.direction === Hammer.DIRECTION_UP || e.direction === Hammer.DIRECTION_DOWN) {
+        if (directionTracker.direction !== e.direction) {
+          directionTracker.direction = e.direction;
+          directionTracker.offset = e.deltaY;
+        }
+      }
+
+      const distanceTraveledSinceChangedDirection = (
+        Math.abs(directionTracker.offset - e.deltaY)
+      );
+      const scrollPosition = (
+        // prevent scroll value to go beyond what can be scrolled
+        Math.min(
+          Math.max(scrollerTracker.value - e.velocityY * 5, 0),
+          scrollableContentHeight - refHeight,
+        )
+      );
+      if (scrollerTracker.value > 0 && scrollPosition === 0) {
+        scrollerTracker.distanceTraveledSinceLastBecameZero = (
+          distanceTraveledSinceChangedDirection
+        );
+      }
+
+      // UP
+      if (directionTracker.direction === Hammer.DIRECTION_UP) {
+        if (translateOffset > 0) {
+          translateOffset = translateOffset - Math.abs(e.velocityY) * 5;
+ 
+          this.ref.current.style.transform = `translateY(${translateOffset}px)`;
+        } else {
+          scroller.scrollTop = scrollerTracker.value = scrollPosition;
+        }
+      }
+      // DOWN
+      else if (directionTracker.direction === Hammer.DIRECTION_DOWN) {
+        if (scrollerTracker.value === 0) {
+          translateOffset = Math.min(translateOffset + Math.abs(e.velocityY) * 5, 50);
+ 
+          this.ref.current.style.transform = `translateY(${translateOffset}px)`;
+        } else {
+          scroller.scrollTop = scrollerTracker.value = scrollPosition;
+        }
+      }
+    });
+    manager.on('panend', (e) => {
+      if (translateOffset > 0) {
+       tween({
+         from: translateOffset,
+         to: 0,
+         duration: 200,
+         onUpdate: (value) => {
+           this.ref.current.style.transform = `translateY(${value}px)`;
+         },
+         onComplete: () => {
+           translateOffset = scrollerTracker.distanceTraveledSinceLastBecameZero = 0;
+         },
+       });
+      }
+    });
+  }
+
+  render() {
+    const {
+      // state
+      filteredEvents,
+      // actions
+      handleSearch,
+      handleShowEventsFromYear,
+    } = this.props;
+
+    return (
+      <div
+        ref={this.ref}
+        css={css`
+          height: 100%; overflow-y: auto;
+        `}
+      >
+        <EventList
+          // TODO: fix 
+          yearsToDisplay={[]}
+          events={filteredEvents}
+          handleShowEventsFromYear={handleShowEventsFromYear}
+        />
+      </div>
+    );
+  }
+}
+
+Events.propTypes = {
+  // eslint-disable-next-line react/forbid-prop-types
+  filteredEvents: PropTypes.object.isRequired,
+};
+
+export default eventsContainer(Events);
+

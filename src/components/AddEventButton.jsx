@@ -29,6 +29,7 @@ const AddEventButton = ({
     onClick={navigateToAddEventView}
     tinted="#B3B9C7"
     size="50px"
+    // TODO: animate imperatively
     style={({
       transform: `translate3d(0, ${scrollTop}px, 0)`,
     })}
@@ -44,6 +45,10 @@ const AddEventButton = ({
       }
       &:before {
         transform: translate(-50%, -50%) rotate(90deg);
+      }
+
+      @media (min-width: 421px) {
+        right: 35px;
       }
     `}
   />

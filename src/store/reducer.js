@@ -15,6 +15,7 @@ import {
   SET_RANGE,
   SET_DISPLAY_DATE,
   SET_CURRENT_DATE,
+  SET_SEARCH_KEYWORD,
   RESET,
 } from './actions';
 import {
@@ -48,13 +49,14 @@ export const initialState = {
   // transition animation when the user navigates between months
   navigationOrientation: navigationOrientations.NONE,
   scrollTop: 0,
-  xOffset: 0,
+  searchKeyword: '',
   isSelectingRange: false,
 };
 
 export default createReducer(initialState, {
   [UPDATE_SCROLL_TOP]: reduce('scrollTop'),
   [SET_SELECTED_EVENT]: reduce('selectedEvent'),
+  [SET_SEARCH_KEYWORD]: reduce('searchKeyword'),
   [ADD_EVENT]: (state, { payload }) => {
     const event = {
       id: generateId(),

@@ -17,12 +17,17 @@ import {
   navigationOrientations,
   views,
 } from '../store/constants';
-import { tween } from '../store/animations';
+import {
+  easings,
+  tween,
+} from '../store/animations';
 import {
   animationStore,
   animationStatus,
+  navigate,
 } from '../store/animationStore';
 // assets
+import SearchIcon from '../svg/search.svg';
 import EventsIcon from '../svg/events.svg';
 import CalendarIcon from '../svg/calendar.svg';
 // selectors
@@ -33,6 +38,15 @@ import {
 } from '../store/selectors';
 // actions
 import { push } from 'connected-react-router';
+import {
+  navigateLeft,
+  navigateRight,
+  setSearchKeyword,
+} from '../store/actions';
+// components
+import ChevronLeft from '../svg/chevron-left.svg';
+import ChevronRight from '../svg/chevron-right.svg';
+import TypeFace2 from './TypeFace2';
 
 export const calendarHeaderIconContainer = compose(
   connect(
@@ -94,19 +108,96 @@ export const PureCalendarHeaderIcon = ({
 
 export const CalendarHeaderIcon = calendarHeaderIconContainer(PureCalendarHeaderIcon);
 
-export const calendarHeaderContainer = connect(
-  (state) => ({
-    cursor: selectCursor(state),
-    navigationOrientation: selectNavigationOrientation(state),
+export const calendarHeaderContainer = compose(
+  connect(
+    (state) => ({
+      view: selectView(state),
+      cursor: selectCursor(state),
+      navigationOrientation: selectNavigationOrientation(state),
+    }),
+    {
+      navigateLeft,
+      navigateRight,
+      setSearchKeyword,
+    },
+  ),
+  withHandlers({
+    handleSearch: ({
+      setSearchKeyword,
+    }) => (e) => setSearchKeyword(e.target.value),
   }),
 );
+
+const monthLabel = css`
+  place-self: center;
+  user-select: none;
+`;
 
 class CalendarHeader extends React.Component {
   constructor(props) {
     super(props);
 
+    this.isAnimating = false;
     this.ref = React.createRef();
+
+    this.animate = this.animate.bind(this);
   }
+
+  animate(orientation, from = 0, easing = easings.EASE_OUT) {
+    if (
+      orientation === navigationOrientations.NONE
+      || typeof orientation === 'undefined'
+      || this.isAnimating
+    ) return;
+
+    this.isAnimating = true;
+
+    if (orientation === navigationOrientations.RIGHT) {
+      tween({
+        from,
+        to: -100,
+        duration: 200,
+        easing,
+        onUpdate: (value) => {
+          animationStore.dispatch(navigate({
+            status: animationStatus.TICK,
+            value
+          }));
+        },
+        onComplete: () => {
+          this.isAnimating = false;
+          this.props.navigateRight();
+          animationStore.dispatch(navigate({
+            status: animationStatus.COMPLETE,
+            value: 0,
+          }));
+        },
+      });
+    }
+
+    if (orientation === navigationOrientations.LEFT) {
+      tween({
+        from,
+        to: 100,
+        duration: 200,
+        easing,
+        onUpdate: (value) => {
+          animationStore.dispatch(navigate({
+            status: animationStatus.TICK,
+            value
+          }));
+        },
+        onComplete: () => {
+          this.isAnimating = false;
+          this.props.navigateLeft();
+          animationStore.dispatch(navigate({
+            status: animationStatus.COMPLETE,
+            value: 0,
+          }));
+        },
+      });
+    }
+  };
 
   componentDidMount() {
     animationStore.subscribe(() => {
@@ -124,16 +215,21 @@ class CalendarHeader extends React.Component {
     const {
       // state
       cursor,
+      view,
+      // actions
+      handleSearch,
     } = this.props;
 
     return (
       <div
         css={css`
-          border-bottom: 1px solid #f1f1f1; padding: 15px 15px 8px; overflow-y: hidden;
+          border-bottom: 1px solid #dedede; padding: 15px calc(100% / 7 / 2 - 9px) 5px;
+          overflow-y: hidden;
         `}
       >
         <div
           css={css`
+            margin-bottom: 10px;
             display: flex; align-items: center; justify-content: space-between;
           `}
         >
@@ -207,6 +303,111 @@ class CalendarHeader extends React.Component {
           </div>
           <CalendarHeaderIcon />
         </div>
+        {
+          view === views.CALENDAR
+          && (
+            <div
+              css={css`
+                margin-bottom: 10px;
+                display: flex; justify-content: space-between;
+                height: 20px; align-items: center;
+
+                @media (max-width: 420px) {
+                  display: none;
+                }
+              `}
+            >
+              <div
+                css={css`
+                  width: 10px; height: 15px;
+                  cursor: pointer;
+                `}
+                onClick={() => this.animate(navigationOrientations.LEFT)}
+              >
+                <ChevronLeft
+                  css={css`
+                    width: 100%; height: 100%;
+                  `}
+                />
+              </div>
+              <div
+                css={css`
+                  width: 10px; height: 15px;
+                  cursor: pointer;
+                `}
+                onClick={() => this.animate(navigationOrientations.RIGHT)}
+              >
+                <ChevronRight
+                  css={css`
+                    width: 100%; height: 100%;
+                  `}
+                />
+              </div>
+            </div>
+          )
+        }
+        {
+          view === views.CALENDAR
+          && (
+            <div
+              css={css`
+                display: flex; justify-content: space-between;
+              `}
+            >
+              <div css={monthLabel}>
+                <TypeFace2 size="10px">Sun</TypeFace2>
+              </div>
+              <div css={monthLabel}>
+                <TypeFace2 size="10px">Mon</TypeFace2>
+              </div>
+              <div css={monthLabel}>
+                <TypeFace2 size="10px">Tue</TypeFace2>
+              </div>
+              <div css={monthLabel}>
+                <TypeFace2 size="10px">Wed</TypeFace2>
+              </div>
+              <div css={monthLabel}>
+                <TypeFace2 size="10px">Thu</TypeFace2>
+              </div>
+              <div css={monthLabel}>
+                <TypeFace2 size="10px">Fri</TypeFace2>
+              </div>
+              <div css={monthLabel}>
+                <TypeFace2 size="10px">Sat</TypeFace2>
+              </div>
+            </div>
+          )
+        }
+        {
+          view === views.EVENTS
+          && (
+            <div
+              css={css`
+                position: relative; margin: 0 0 5px;
+                height: 40px;
+              `}
+            >
+              <SearchIcon
+                css={css`
+                  position: absolute; top: 50%; left: 14px; transform: translate(0, -50%);
+                  height: 14px; width: 14px;
+                `}
+              />
+              <input
+                type="text"
+                onChange={handleSearch}
+                css={css`
+                  margin: 0;
+                  display: block; width: 100%; padding: 0 15px 0 38px; height: 100%; border: none;
+                  background-color: #e6e6e6; border-radius: 6px;
+                  &:focus {
+                    outline: none;
+                  }
+                `}
+              />
+            </div>
+          )
+        }
       </div>
     );
   }
@@ -217,6 +418,7 @@ CalendarHeader.propTypes = {
   cursor: PropTypes.object.isRequired,
   // toggleEventsView: PropTypes.func.isRequired,
   navigationOrientation: PropTypes.oneOf(Object.values(navigationOrientations)).isRequired,
+  handleSearch: PropTypes.func.isRequired,
 };
 
 const ConnectedCalendarHeader = calendarHeaderContainer(CalendarHeader);

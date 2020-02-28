@@ -10,10 +10,7 @@ import {
 } from 'react-router-dom';
 import { views } from '../store/constants';
 // selectors
-import {
-  selectNavigationHistory,
-  selectView,
-} from '../store/selectors';
+import { selectView } from '../store/selectors';
 // components
 import EventDetails from './EventDetails';
 import AddEvent from './AddEvent';
@@ -21,10 +18,10 @@ import Events from './Events';
 import CalendarHeader from './CalendarHeader';
 import CalendarMonthDisplay from './CalendarMonthDisplay';
 import EditEvent from './EditEvent';
+import AddEventButton from './AddEventButton';
 
 const calendarContainer = connect(
   (state) => ({
-    navigationHistory: selectNavigationHistory(state),
     view: selectView(state),
   }),
 );
@@ -47,7 +44,6 @@ Wrapper.propTypes = {
 
 export const PureCalendar = ({
   anchor,
-  navigationHistory,
   view,
 }) => (
   <div
@@ -67,7 +63,11 @@ export const PureCalendar = ({
     <div
       css={css`
         display: flex; flex-direction: column; height: 100%;
-        padding: 12px 2px;
+        padding: 12px 0 0;
+
+        @media (min-width: 421px) {
+          margin: 0 -20px;
+        }
       `}
     >
       <CalendarHeader />
@@ -83,6 +83,7 @@ export const PureCalendar = ({
             <Events />
           </Wrapper>
         </Route>
+        <AddEventButton />
       </div>
     </div>
     <Switch>
@@ -106,8 +107,6 @@ export const PureCalendar = ({
 );
 
 PureCalendar.propTypes = {
-  // eslint-disable-next-line react/forbid-prop-types
-  navigationHistory: PropTypes.array.isRequired,
   view: PropTypes.oneOf(Object.values(views)).isRequired,
 };
 
