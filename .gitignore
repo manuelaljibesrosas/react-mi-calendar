@@ -3,3 +3,4 @@
 /dist/
 /TODO.md
 *.swp
+webpack-stats.json
