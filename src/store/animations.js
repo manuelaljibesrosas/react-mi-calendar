@@ -3,7 +3,7 @@ export const easings = {
   EASE_OUT: (value, power = 2) => (
     1 - (1 - value) ** power
   ),
-}
+};
 
 export const tween = ({
   from = 0,

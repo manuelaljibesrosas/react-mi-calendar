@@ -154,20 +154,100 @@ const EventDetails = ({
     <div
       css={css`
         position: relative;
-        display: flex; flex-direction: column; justify-content: flex-end; padding: 20px 25px; height 250px;
+        display: flex; flex-direction: column; justify-content: flex-end; padding: 20px 20px; height 250px;
         background-image: ${headerColors[getTimeOfDay(getHours(start))]};
       `}
     >
       {
-        // getTimeOfDay(start.get('hour')) === timesOfDay.MORNING
-        // && (
-        //   <MorningBackground />
-        // )
+        getTimeOfDay(start.getHours()) === timesOfDay.NOON
+        && (
+          <svg
+            css={css`
+              pointer-events: none;
+              position: absolute; top: 0; left: 0;
+              width: 100%; height: 100%;
+            `}
+          >
+            <circle r="20" cx="14%" cy="17%" fill="white" opacity="30%"/>
+            <circle r="12" cx="32%" cy="34%" fill="white" opacity="15%"/>
+            <circle r="23.5" cx="75%" cy="80%" fill="white" opacity="12%"/>
+            <circle r="50" cx="90%" cy="90%" fill="white" opacity="10%"/>
+          </svg>
+        )
+      }
+      {
+        getTimeOfDay(start.getHours()) === timesOfDay.MORNING
+        && (
+          <svg
+            css={css`
+              pointer-events: none;
+              position: absolute; top: 0; left: 0;
+              width: 100%; height: 100%;
+            `}
+          >
+            <defs>
+              <path
+                id="bird"
+                d="M 0 40 L 100 80 85 40 100 0"
+                fill="#2aaa77"
+                transform="scale(.18) rotate(190, 50, 40)"
+              />
+            </defs>
+            <use href="#bird" x="38%" y="50%" />
+            <use href="#bird" x="44%" y="42%" />
+            <use href="#bird" x="50%" y="48%" />
+            <use href="#bird" x="55%" y="38%" />
+            <use href="#bird" x="60%" y="27%" />
+            <use href="#bird" x="80%" y="43%" />
+          </svg>
+        )
+      }
+      {
+        getTimeOfDay(start.getHours()) === timesOfDay.NIGHT
+        && (
+          <svg
+            css={css`
+              pointer-events: none;
+              position: absolute; top: 0; left: 0;
+              width: 100%; height: 100%;
+            `}
+            viewBox="0 0 350 220"
+            preserveAspectRatio="xMidYMid slice"
+          >
+            <defs>
+              <linearGradient id="myGradient" gradientTransform="rotate(90)">
+                <stop offset="5%"  stop-color="#fff" />
+                <stop offset="95%" stop-color="#fff" stop-opacity="0" />
+              </linearGradient>
+              <g id="comet">
+                <path
+                  d="M 0 0 L 30 30"
+                  stroke="url('#myGradient')"
+                  transform="rotate(280, 0, 0)"
+                />
+                <circle r="1.2" cx="0" cy="0" fill="#fff" />
+              </g>
+              <circle id="star" r="1" cx="0" cy="0" fill="#fff" />
+            </defs>
+            <use href="#star" transform="translate(40, 40)" opacity=".7" />
+            <use href="#comet" transform="translate(30, 85)" opacity=".6" />
+            <use href="#star" transform="translate(110, 60)" opacity=".7" />
+            <use href="#star" transform="translate(120, 100)" opacity=".4" />
+            <use href="#star" transform="translate(120, 30)" opacity=".3" />
+            <use href="#star" transform="translate(150, 20)" opacity=".35" />
+            <use href="#star" transform="translate(190, 40)" opacity=".4" />
+            <use href="#star" transform="translate(185, 80)" opacity=".5" />
+            <use href="#comet" transform="translate(230, 60)" opacity=".8" />
+            <use href="#star" transform="translate(240, 20)" opacity=".3" />
+            <use href="#star" transform="translate(280, 40)" opacity="1" />
+            <use href="#star" transform="translate(315, 50)" opacity=".5" />
+          </svg>
+        )
       }
       <div
         onClick={goBack}
         css={css`
-          position: absolute; top: 20px; left: 25px;
+          position: absolute; top: 20px; left: 20px;
           width: 12px; height: 20px;
           cursor: pointer;
         `}
@@ -181,7 +261,7 @@ const EventDetails = ({
       <h2
         css={css`
           margin: 0 0 8px;
-          font-weight: 500;
+          font-weight: 500; font-size: 22px;
         `}
       >
         {name}

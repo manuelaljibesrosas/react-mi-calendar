@@ -341,8 +341,6 @@ class Events extends React.Component {
       value: 0,
       distanceTraveledSinceLastBecameZero: 0,
     };
-    let yOffset = 0;
-    let areaOffset = 0;
     let translateOffset = 0;
     const directionTracker = {
       direction: 0,
