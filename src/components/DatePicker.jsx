@@ -1,7 +1,6 @@
 /** @jsx jsx */
 import React from 'react';
 import { jsx, css, keyframes } from '@emotion/core';
-import styled from '@emotion/styled';
 import {
   compose,
   lifecycle,
@@ -13,9 +12,10 @@ import {
   add,
   sub,
   format,
+  parse,
 } from 'date-fns/fp';
 // components
-import Arrow from '../svg/arrow.svg';
+import Scroller from './Scroller';
 import RoundedBox from './RoundedBox';
 import Button from './Button';
 
@@ -37,156 +37,6 @@ const fadeIn = keyframes`
   }
 `;
 
-class Scroller extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.actions = {
-      INCREMENT: add,
-      DECREMENT: sub,
-    };
-
-    this.count = 0;
-    this.interval = 20;
-    this.frameId = 0;
-    this.step = this.props.step || 1;
-
-    this.handleMouseDown = this.handleMouseDown.bind(this);
-    this.handleCancel = this.handleCancel.bind(this);
-  }
-
-  handleMouseDown(action) {
-    const {
-      value,
-      onChange,
-      unit,
-      step,
-    } = this.props;
-
-    if (this.count === 0) {
-      onChange(action({ [unit]: this.step })(value));
-    }
-    if (this.count > 20) { // offset until auto inc starts
-      if (this.count % this.interval === 0) {
-        onChange(action({ [unit]: this.step })(value));
-      }
-      // update interval value after 2s
-      if (this.count > 60 * 2) {
-        this.interval = 10;
-      }
-      // update interval value after 3s
-      if (this.count > 60 * 3) {
-        this.interval = 5;
-      }
-      // update step value after 4s
-      if (this.count > 60 * 4) {
-        this.step = step * 3;
-      }
-    }
-    this.count++;
-    this.frameId = requestAnimationFrame(() => this.handleMouseDown(action));
-  }
-
-  handleCancel() {
-    this.count = 0;
-    this.step = this.props.step || 1;
-    this.interval = 20;
-    cancelAnimationFrame(this.frameId);
-  }
-
-  render() {
-    const {
-      value,
-      step = 1,
-      unit,
-      format: formatStr,
-    } = this.props;
-
-    return (
-      <div
-        css={css`
-          display: flex; flex-direction: column; justify-content: space-between;
-          height: 100%; align-items: center;
-        `}
-      >
-        <div
-          onMouseDown={() => this.handleMouseDown(this.actions.DECREMENT)}
-          onMouseUp={this.handleCancel}
-          onMouseOut={this.handleCancel}
-          css={css`
-            transform: rotate(-90deg);
-            width: 15px; height: 15px;
-            text-align: center;
-            cursor: pointer;
-          `}
-        >
-          <Arrow
-            css={css`
-              width: 100%; height: 100%;
-            `}
-          />
-        </div>
-        <div
-          css={css`
-            position: relative;
-            display: flex; flex-direction: column; justify-content: space-around;
-            align-items: center; height: 100%; padding: 10px 0;
-
-            &:after {
-              content: "";
-              pointer-events: none;
-              position: absolute; top: 0; left: 0;
-              width: 100%; height: 100%;
-              background-image: linear-gradient(to bottom, rgba(255, 255, 255, .5) 15%, transparent 25%, transparent 75%, rgba(255, 255, 255, .5) 85%);
-            }
-          `}
-        >
-          <div
-            css={css`
-              opacity: .5;
-              user-select: none;
-            `}
-          >
-            {compose(format(formatStr), sub({ [unit]: step }))(value)}
-          </div>
-          <div
-            css={css`
-              user-select: none;
-            `}
-          >
-            {format(formatStr)(value)}
-          </div>
-          <div
-            css={css`
-              opacity: .5;
-              user-select: none;
-            `}
-          >
-            {compose(format(formatStr), add({ [unit]: step }))(value)}
-          </div>
-        </div>
-        <div
-          onMouseDown={() => this.handleMouseDown(this.actions.INCREMENT)}
-          onMouseUp={this.handleCancel}
-          onMouseOut={this.handleCancel}
-          css={css`
-            transform: rotate(90deg);
-            width: 15px; height: 15px;
-            text-align: center;
-            cursor: pointer;
-          `}
-        >
-          <Arrow
-            css={css`
-              width: 100%; height: 100%;
-            `}
-          />
-        </div>
-      </div>
-    );
-  }
-}
-
 const datePickerContainer = compose(
   withState('state', 'setState', ({ value }) => ({
     isOpened: false,
@@ -202,10 +52,12 @@ const datePickerContainer = compose(
       ...state,
       isOpened: false,
     }),
-    handleChange: ({ state, setState }) => (value) => setState({
-      ...state,
-      internalValue: value,
-    }),
+    handleChange: ({ state, setState }) => (value, format) => (
+      setState({
+        ...state,
+        internalValue: parse(state.internalValue)(format)(value),
+      })
+    ),
   }),
   withHandlers({
     handleCancel: ({
@@ -240,7 +92,13 @@ const PureDatePicker = ({
     onClick={open}
     css={css`
       display: flex; height: 35px; align-items: center;
+      font-family: Roboto, sans-serif;
       cursor: pointer;
+
+      & * {
+        box-sizing: border-box;
+        user-select: none;
+      }
     `}
   >
     <div
@@ -324,6 +182,7 @@ const PureDatePicker = ({
               <div
                 css={css`
                   margin-right: 10px;
+                  flex: 1;
                 `}
               >
                 <Scroller
@@ -336,6 +195,7 @@ const PureDatePicker = ({
               <div
                 css={css`
                   margin-right: 10px;
+                  flex: 1;
                 `}
               >
                 <Scroller
@@ -345,11 +205,14 @@ const PureDatePicker = ({
                   onChange={handleChange}
                 />
               </div>
-              <div>
+              <div
+                css={css`
+                  flex: 1;
+                `}
+              >
                 <Scroller
                   value={internalValue}
                   format="m"
-                  step={5}
                   unit="minutes"
                   onChange={handleChange}
                 />
